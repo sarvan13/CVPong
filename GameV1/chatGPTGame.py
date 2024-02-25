@@ -59,12 +59,12 @@ while (running and cap.isOpened()):
     if menu:
         screen.fill(BLACK)
 
-        for i, option in enumerate(options):
-            if i == selected_option:
-                text = selected_font.render(option, True, BLACK)
-            else:
-                text = font.render(option, True, BLACK)
-            screen.blit(text, (SCREEN_WIDTH // 2 - text.get_width() // 2, 100 + i * (FONT_SIZE + 20)))
+        # for i, option in enumerate(options):
+        #     if i == selected_option:
+        #         text = selected_font.render(option, True, BLACK)
+        #     else:
+        #         text = font.render(option, True, BLACK)
+        #     screen.blit(text, (SCREEN_WIDTH // 2 - text.get_width() // 2, 100 + i * (FONT_SIZE + 20)))
                     
         start_text = font.render("Press SPACE to start", True, WHITE)
         screen.blit(start_text, (WIDTH // 2 - start_text.get_width() // 2, HEIGHT // 2))

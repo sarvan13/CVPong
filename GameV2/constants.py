@@ -7,6 +7,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 BALL_SPEED = 5
 PADDLE_SPEED = 8
+COMP_SPEED = 6
 
 options = ["Classic", "Infinite", "2 Player", "Exit"]
 

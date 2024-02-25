@@ -2,7 +2,9 @@ import pygame
 import sys
 import cv2
 import mediapipe as mp
-import classic
+from classicGame import ClassicGame
+from infiniteGame import InfiniteGame
+from game import Game
 import constants
 
 # Initialize Pygame
@@ -59,9 +61,12 @@ while (gameState == constants.State.MENU):
     # Set the frames per second
     clock.tick(constants.FPS)
 
-if (gameState == constants.State.CLASSIC):
-    classic.run_classic(screen, cap, mp_hands, hands)
+if gameState == constants.State.CLASSIC:
+    game = ClassicGame(screen, cap, mp_hands, hands)
+elif gameState == constants.State.INFINITE:
+    game = InfiniteGame(screen, cap, mp_hands, hands)
 
+game.runGame()
 # Quit Pygame
 pygame.quit()
 cap.release()
