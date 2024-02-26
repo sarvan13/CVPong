@@ -32,46 +32,48 @@ clock = pygame.time.Clock()
 gameState = constants.State.MENU
 game = None
 
-while (gameState == constants.State.MENU):
-    screen.fill(constants.WHITE)
-    for i, option in enumerate (constants.options):
-        if i == selected_option:
-            text = selected_font.render(option, True, constants.BLACK)
-        else:
-            text = font.render(option, True, constants.BLACK)
-        screen.blit(text, (constants.WIDTH // 2 - text.get_width() // 2, 100 + i * (constants.DEFAULT_FONT_SIZE + 20)))
+while gameState != constants.State.EXIT:
+    if gameState == constants.State.MENU:
+        screen.fill(constants.WHITE)
+        for i, option in enumerate (constants.options):
+            if i == selected_option:
+                text = selected_font.render(option, True, constants.BLACK)
+            else:
+                text = font.render(option, True, constants.BLACK)
+            screen.blit(text, (constants.WIDTH // 2 - text.get_width() // 2, 100 + i * (constants.DEFAULT_FONT_SIZE + 20)))
 
-    pygame.display.flip()
+        pygame.display.flip()
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            gameState = constants.State.EXIT
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_DOWN:
-                selected_option = (selected_option + 1) % len(constants.options)
-            elif event.key == pygame.K_UP:
-                selected_option = (selected_option - 1) % len(constants.options)
-            elif event.key == pygame.K_RETURN:
-                if (selected_option == (len(constants.options) - 1)):
-                    gameState = constants.State.EXIT
-                else:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                gameState = constants.State.EXIT
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_DOWN:
+                    selected_option = (selected_option + 1) % len(constants.options)
+                elif event.key == pygame.K_UP:
+                    selected_option = (selected_option - 1) % len(constants.options)
+                elif event.key == pygame.K_RETURN:
                     gameState = constants.State(selected_option + 1)
                     print (f"{gameState}")
-    # Update display
-    pygame.display.flip()
+        # Update display
+        pygame.display.flip()
 
-    # Set the frames per second
-    clock.tick(constants.FPS)
+        # Set the frames per second
+        clock.tick(constants.FPS)
 
-if gameState == constants.State.CLASSIC:
-    game = ClassicGame(screen, cap, mp_hands, hands)
-elif gameState == constants.State.INFINITE:
-    game = InfiniteGame(screen, cap, mp_hands, hands)
-elif gameState == constants.State.PVP:
-    game = TwoPlayerGame(screen, cap, mp_hands, hands)
+    if gameState == constants.State.CLASSIC:
+        game = ClassicGame(screen, cap, mp_hands, hands)
+    elif gameState == constants.State.INFINITE:
+        game = InfiniteGame(screen, cap, mp_hands, hands)
+    elif gameState == constants.State.PVP:
+        game = TwoPlayerGame(screen, cap, mp_hands, hands)
 
-if game:
-    game.runGame()
+    if game and gameState != constants.State.EXIT:
+        game.runGame()
+        if game.returnMenu:
+            gameState = constants.State.MENU
+        else:
+            gameState = constants.State.EXIT
 # Quit Pygame
 pygame.quit()
 cap.release()

@@ -115,11 +115,14 @@ class ClassicGame(GameMode):
                 self.paused = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_DOWN:
-                    self.selected_input = (self.selected_input + 1) % 2
+                    self.selected_input = (self.selected_input + 1) % 3
                 elif event.key == pygame.K_UP:
-                    self.selected_input = (self.selected_input - 1) % 2
+                    self.selected_input = (self.selected_input - 1) % 3
                 elif event.key == pygame.K_RETURN:
-                    if self.selected_input == 1:
+                    if self.selected_input == 2:
+                        self.running = False
+                    elif self.selected_input == 1:
+                        self.returnMenu = True
                         self.running = False
                     self.paused = False
                 elif event.key == pygame.K_ESCAPE:
@@ -127,15 +130,27 @@ class ClassicGame(GameMode):
         
         if self.selected_input == 0:
             text = self.selected_font.render("Return to Game", True, constants.BLACK)
-            self.screen.blit(text, (constants.WIDTH // 2 - text.get_width() // 2, constants.HEIGHT // 2 - (constants.SELECTED_FONT_SIZE + 10)))
+            self.screen.blit(text, (constants.WIDTH // 2 - text.get_width() // 2, constants.HEIGHT // 2 - 2*(constants.SELECTED_FONT_SIZE + 10)))
+            text = self.font.render("Return to Menu", True, constants.BLACK)
+            self.screen.blit(text, (constants.WIDTH // 2 - text.get_width() // 2, constants.HEIGHT // 2))
             text = self.font.render("Exit Game", True, constants.BLACK)
-            self.screen.blit(text, (constants.WIDTH // 2 - text.get_width() // 2, constants.HEIGHT // 2 + (constants.DEFAULT_FONT_SIZE + 10)))
+            self.screen.blit(text, (constants.WIDTH // 2 - text.get_width() // 2, constants.HEIGHT // 2 + 2*(constants.DEFAULT_FONT_SIZE + 10)))
+        elif self.selected_input == 1:
+            text = self.font.render("Return to Game", True, constants.BLACK)
+            self.screen.blit(text, (constants.WIDTH // 2 - text.get_width() // 2, constants.HEIGHT // 2 - (constants.DEFAULT_FONT_SIZE + 10)))
+            text = self.selected_font.render("Return to Menu", True, constants.BLACK)
+            self.screen.blit(text, (constants.WIDTH // 2 - text.get_width() // 2, constants.HEIGHT // 2))
+            text = self.font.render("Exit Game", True, constants.BLACK)
+            self.screen.blit(text, (constants.WIDTH // 2 - text.get_width() // 2, constants.HEIGHT // 2 + (constants.SELECTED_FONT_SIZE + 10)))
         else:
             text = self.font.render("Return to Game", True, constants.BLACK)
             self.screen.blit(text, (constants.WIDTH // 2 - text.get_width() // 2, constants.HEIGHT // 2 - (constants.DEFAULT_FONT_SIZE + 10)))
+            text = self.font.render("Return to Menu", True, constants.BLACK)
+            self.screen.blit(text, (constants.WIDTH // 2 - text.get_width() // 2, constants.HEIGHT // 2))
             text = self.selected_font.render("Exit Game", True, constants.BLACK)
             self.screen.blit(text, (constants.WIDTH // 2 - text.get_width() // 2, constants.HEIGHT // 2 + (constants.SELECTED_FONT_SIZE + 10)))
-        
+
+
         pygame.display.flip()
     
     def countDown(self):

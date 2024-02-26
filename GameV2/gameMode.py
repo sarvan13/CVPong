@@ -10,6 +10,7 @@ class GameMode(ABC):
         self.useCV = -1
         self.paused = False
         self.fadeIn = True
+        self.returnMenu = False
     
     def runGame(self):
         while self.useCV == -1:
