@@ -7,6 +7,7 @@ from infiniteGame import InfiniteGame
 from twoPlayer import TwoPlayerGame
 from gameMode import GameMode
 import constants
+import graphics
 
 # Initialize Pygame
 pygame.init()
@@ -19,8 +20,8 @@ pygame.display.set_caption("Pong Game")
 selected_option = 0
 
 # Fonts
-font = pygame.font.Font(None, constants.DEFAULT_FONT_SIZE)
-selected_font = pygame.font.Font(None, constants.SELECTED_FONT_SIZE)
+font = pygame.font.Font("fonts/miami.ttf", constants.DEFAULT_FONT_SIZE)
+selected_font = pygame.font.Font("fonts/miami.ttf", constants.SELECTED_FONT_SIZE)
 
 #initialized camera and hand model
 mp_hands = mp.solutions.hands
@@ -34,13 +35,13 @@ game = None
 
 while gameState != constants.State.EXIT:
     if gameState == constants.State.MENU:
-        screen.fill(constants.WHITE)
+        graphics.drawBackground(screen)
         for i, option in enumerate (constants.options):
             if i == selected_option:
                 text = selected_font.render(option, True, constants.BLACK)
             else:
                 text = font.render(option, True, constants.BLACK)
-            screen.blit(text, (constants.WIDTH // 2 - text.get_width() // 2, 100 + i * (constants.DEFAULT_FONT_SIZE + 20)))
+            screen.blit(text, (constants.WIDTH // 2 - text.get_width() // 2, constants.HEIGHT // 2 + i * (constants.DEFAULT_FONT_SIZE + 20)))
 
         pygame.display.flip()
 

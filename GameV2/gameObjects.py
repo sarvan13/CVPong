@@ -2,14 +2,18 @@ import pygame
 import constants
 import cv2
 import mediapipe as mp
+import numpy as np
 
 class Paddle:
     def __init__(self, pygame_rect, speed):
         self.pygame_rect = pygame_rect
         self.speed = speed
     
+    # Draw
     def movePlayerCV(self, frame, mp_hands, hands):
         results = hands.process(frame)
+        frame_height = frame.shape[0]
+        frame_edge = (1 - constants.FRAME_SCALE) / 2
 
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
@@ -17,11 +21,15 @@ class Paddle:
                 cx, cy = int(hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_MCP].x * frame.shape[1]), \
                          int(hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_MCP].y * frame.shape[0])
                 
-                self.speed = cy - self.pygame_rect.centery
-                self.pygame_rect.centery = cy
+                game_y = np.clip(cy, frame_height * frame_edge, frame_height * (1-frame_edge)) - (frame_height * frame_edge)
+                game_y = game_y * (constants.HEIGHT/ (frame_height *constants.FRAME_SCALE))
+                game_y = np.clip(game_y, self.pygame_rect.height // 2, constants.HEIGHT - self.pygame_rect.height // 2)
+                self.speed = game_y - self.pygame_rect.centery
+                self.pygame_rect.centery = game_y
 
                 # Draw a circle at the center of the hand
                 cv2.circle(frame, (cx, cy), 10, (0, 255, 0), -1)
+        
         cv2.imshow('Hand Tracking', frame)
     
     def movePlayerKey(self, key_up, key_down):
