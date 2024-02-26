@@ -24,11 +24,11 @@ class Paddle:
                 cv2.circle(frame, (cx, cy), 10, (0, 255, 0), -1)
         cv2.imshow('Hand Tracking', frame)
     
-    def movePlayerKey(self):
+    def movePlayerKey(self, key_up, key_down):
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_UP] and self.pygame_rect.top > 0:
+        if keys[key_up] and self.pygame_rect.top > 0:
             self.pygame_rect.y -= constants.PADDLE_SPEED
-        if keys[pygame.K_DOWN] and self.pygame_rect.bottom < constants.HEIGHT:
+        if keys[key_down] and self.pygame_rect.bottom < constants.HEIGHT:
             self.pygame_rect.y += constants.PADDLE_SPEED
     
     def moveComp(self, movespeed, ball):
@@ -57,8 +57,8 @@ class Ball:
         self.vx = constants.BALL_SPEED
         self.vy = constants.BALL_SPEED
         self.spin = spin
-        self.score_left = 0
-        self.score_right = 0
+        self.past_left = 0
+        self.past_right = 0
 
     def moveBall(self, left_paddle, right_paddle):
         self.pygame_rect.x += self.vx
@@ -75,13 +75,13 @@ class Ball:
             self.vy = self.vy / abs(self.vy) + self.vy
 
         if self.pygame_rect.left <= 0:
-            self.score_right += 1
+            self.past_left += 1
             self.pygame_rect.x = constants.WIDTH // 2 - self.pygame_rect.width // 2
             self.vx = constants.BALL_SPEED
             self.vy = constants.BALL_SPEED
 
         if self.pygame_rect.right >= constants.WIDTH:
-            self.score_left += 1
+            self.past_right += 1
             self.pygame_rect.x = constants.WIDTH // 2 - self.pygame_rect.width // 2
             self.vx = -constants.BALL_SPEED
             self.vy = constants.BALL_SPEED

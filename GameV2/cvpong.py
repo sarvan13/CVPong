@@ -4,7 +4,8 @@ import cv2
 import mediapipe as mp
 from classicGame import ClassicGame
 from infiniteGame import InfiniteGame
-from game import Game
+from twoPlayer import TwoPlayerGame
+from gameMode import GameMode
 import constants
 
 # Initialize Pygame
@@ -18,8 +19,8 @@ pygame.display.set_caption("Pong Game")
 selected_option = 0
 
 # Fonts
-font = pygame.font.Font(None, 36)
-selected_font = pygame.font.Font(None, 46)
+font = pygame.font.Font(None, constants.DEFAULT_FONT_SIZE)
+selected_font = pygame.font.Font(None, constants.SELECTED_FONT_SIZE)
 
 #initialized camera and hand model
 mp_hands = mp.solutions.hands
@@ -29,6 +30,7 @@ cap = cv2.VideoCapture(0)
 # Game loop
 clock = pygame.time.Clock()
 gameState = constants.State.MENU
+game = None
 
 while (gameState == constants.State.MENU):
     screen.fill(constants.WHITE)
@@ -37,13 +39,13 @@ while (gameState == constants.State.MENU):
             text = selected_font.render(option, True, constants.BLACK)
         else:
             text = font.render(option, True, constants.BLACK)
-        screen.blit(text, (constants.WIDTH // 2 - text.get_width() // 2, 100 + i * (36 + 20)))
+        screen.blit(text, (constants.WIDTH // 2 - text.get_width() // 2, 100 + i * (constants.DEFAULT_FONT_SIZE + 20)))
 
     pygame.display.flip()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            gameState = constants.State.EXIT
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_DOWN:
                 selected_option = (selected_option + 1) % len(constants.options)
@@ -51,7 +53,7 @@ while (gameState == constants.State.MENU):
                 selected_option = (selected_option - 1) % len(constants.options)
             elif event.key == pygame.K_RETURN:
                 if (selected_option == (len(constants.options) - 1)):
-                    running = False
+                    gameState = constants.State.EXIT
                 else:
                     gameState = constants.State(selected_option + 1)
                     print (f"{gameState}")
@@ -65,8 +67,11 @@ if gameState == constants.State.CLASSIC:
     game = ClassicGame(screen, cap, mp_hands, hands)
 elif gameState == constants.State.INFINITE:
     game = InfiniteGame(screen, cap, mp_hands, hands)
+elif gameState == constants.State.PVP:
+    game = TwoPlayerGame(screen, cap, mp_hands, hands)
 
-game.runGame()
+if game:
+    game.runGame()
 # Quit Pygame
 pygame.quit()
 cap.release()
