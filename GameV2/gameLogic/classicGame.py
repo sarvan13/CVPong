@@ -61,7 +61,7 @@ class ClassicGame(GameMode):
          # Draw Frame
         #self.screen.fill(constants.BLACK)
         graphics.drawGameBackground(self.screen)
-        pygame.draw.rect(self.screen, constants.PINK, self.left_paddle.pygame_rect, border_radius=1)
+        pygame.draw.rect(self.screen, constants.PINK, self.left_paddle.pygame_rect)
         pygame.draw.rect(self.screen, constants.PINK, self.right_paddle.pygame_rect)
         pygame.draw.ellipse(self.screen, constants.WHITE, self.ball.pygame_rect)
         

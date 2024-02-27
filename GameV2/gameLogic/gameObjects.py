@@ -3,11 +3,13 @@ import GameV2.constants as constants
 import cv2
 import mediapipe as mp
 import numpy as np
+from time import time
 
 class Paddle:
     def __init__(self, pygame_rect, speed):
         self.pygame_rect = pygame_rect
         self.speed = speed
+        self.time_last_hit = -1
     
     # Draw
     def movePlayerCV(self, frame, mp_hands, hands):
@@ -67,20 +69,20 @@ class Ball:
         self.spin = spin
         self.past_left = 0
         self.past_right = 0
+        self.time = time()
 
     def moveBall(self, left_paddle, right_paddle):
+        self.time = time()
         self.pygame_rect.x += self.vx
         self.pygame_rect.y += self.vy
 
-        if self.pygame_rect.top <= 0 or self.pygame_rect.bottom >= constants.HEIGHT:
-            self.vy = -self.vy
+        self.checkPaddleCollision(left_paddle)
+        self.checkPaddleCollision(right_paddle)
 
-        if self.pygame_rect.colliderect(left_paddle.pygame_rect) \
-              or self.pygame_rect.colliderect(right_paddle.pygame_rect):
-            self.vx = -self.vx
-            #increase speed by 1 in the same direction of travel off the paddle
-            self.vx = self.vx / abs(self.vx) + self.vx
-            self.vy = self.vy / abs(self.vy) + self.vy
+        if self.pygame_rect.top <= 0:
+            self.vy = abs(self.vy)
+        if self.pygame_rect.bottom >= constants.HEIGHT:
+            self.vy = -1 * abs(self.vy)
 
         if self.pygame_rect.left <= 0:
             self.past_left += 1
@@ -93,3 +95,33 @@ class Ball:
             self.pygame_rect.x = constants.WIDTH // 2 - self.pygame_rect.width // 2
             self.vx = -constants.BALL_SPEED
             self.vy = constants.BALL_SPEED
+    
+    def checkPaddleCollision(self, paddle):
+        # We dont want to keep checking the same paddle if we already collided with it otherwise it leads
+        # to unwanted edge case behaviour so we put the paddle on a collision cool down of 200 ms
+        if self.pygame_rect.colliderect(paddle.pygame_rect) and (self.time - paddle.time_last_hit) > 0.2:
+            paddle.time_last_hit = self.time
+            if self.pygame_rect.bottom > paddle.pygame_rect.bottom:
+                # This means the ball is either on the corner or bottom of the paddle
+                self.vy = abs(self.vy) # force the ball to bounce down
+
+                # If its a corner bounce it back to the playing field but with a potentially changed y
+                if self.pygame_rect.right > (paddle.pygame_rect.right + self.pygame_rect.width // 2) \
+                    or self.pygame_rect.left < (paddle.pygame_rect.left - self.pygame_rect.width // 2):
+                    self.vx = -self.vx
+                    self.vx = self.vx / abs(self.vx) + self.vx
+                    self.vy = self.vy / abs(self.vy) + self.vy
+
+            elif self.pygame_rect.top < paddle.pygame_rect.top:
+                # ball is either on corner or top of paddle
+                self.vy = -1 * abs(self.vy) # force ball up
+
+                if self.pygame_rect.right > (paddle.pygame_rect.right + self.pygame_rect.width // 2) \
+                    or self.pygame_rect.left < (paddle.pygame_rect.left - self.pygame_rect.width // 2):
+                    self.vx = -self.vx
+                    self.vx = self.vx / abs(self.vx) + self.vx
+                    self.vy = self.vy / abs(self.vy) + self.vy
+            else:
+                self.vx = -self.vx
+                self.vx = self.vx / abs(self.vx) + self.vx
+                self.vy = self.vy / abs(self.vy) + self.vy
