@@ -12,13 +12,18 @@ class Paddle:
         self.time_last_hit = -1
     
     # Draw
-    def movePlayerCV(self, frame, mp_hands, hands):
+    def movePlayerCV(self, frame, mp_hands, hands, use_left=False):
         results = hands.process(frame)
         frame_height = frame.shape[0]
         frame_edge = (1 - constants.FRAME_SCALE) / 2
 
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
+                is_left = self.isLeftHand(mp_hands, hand_landmarks)
+                if use_left and not is_left:
+                    continue
+                elif not use_left and is_left:
+                    continue
                 # Get the coordinates of the center of the hand
                 cx, cy = int(hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_MCP].x * frame.shape[1]), \
                          int(hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_MCP].y * frame.shape[0])
@@ -32,7 +37,8 @@ class Paddle:
                 # Draw a circle at the center of the hand
                 cv2.circle(frame, (cx, cy), 10, (0, 255, 0), -1)
         
-        cv2.imshow('Hand Tracking', frame)
+        #cv2.imshow('Hand Tracking', frame)
+
     
     def movePlayerKey(self, key_up, key_down):
         keys = pygame.key.get_pressed()
@@ -60,6 +66,14 @@ class Paddle:
                 self.pygame_rect.top = 0
             if self.pygame_rect.bottom > constants.HEIGHT:
                 self.pygame_rect.bottom = constants.HEIGHT
+
+    def isLeftHand(self, mp_hands, landmarks):
+        if landmarks:
+            thumb_tip_x = landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP].x
+            pinky_tip_x = landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP].x
+
+            return thumb_tip_x > pinky_tip_x
+        return False
 
 class Ball:
     def __init__(self, pygame_rect, spin):

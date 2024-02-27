@@ -1,6 +1,6 @@
 from GameV2.gameLogic.gameMode import GameMode
 from GameV2.gameLogic.gameObjects import Paddle, Ball
-import GameV2.graphics as graphics
+from GameV2.graphics import Graphics
 import pygame
 import GameV2.constants as constants
 import cv2
@@ -15,6 +15,7 @@ class ClassicGame(GameMode):
         self.left_paddle = Paddle(pygame.Rect(50, constants.HEIGHT // 2 - 50, 20, 100), 0)
         self.ball = Ball(pygame.Rect(constants.WIDTH // 2 - 15, constants.HEIGHT // 2 - 15, 30, 30), 0)
         self.clock = pygame.time.Clock()
+        self.graphics = Graphics(screen)
         self.font = pygame.font.Font(None, constants.DEFAULT_FONT_SIZE)
         self.selected_font = pygame.font.Font(None, constants.SELECTED_FONT_SIZE)
         self.title_font = pygame.font.Font(None, constants.TITLE_FONT_SIZE)
@@ -60,7 +61,7 @@ class ClassicGame(GameMode):
     def drawFrame(self):
          # Draw Frame
         #self.screen.fill(constants.BLACK)
-        graphics.drawGameBackground(self.screen)
+        self.graphics.drawBackgroundImage(self.screen, self.graphics.game_background_image)
         pygame.draw.rect(self.screen, constants.PINK, self.left_paddle.pygame_rect)
         pygame.draw.rect(self.screen, constants.PINK, self.right_paddle.pygame_rect)
         pygame.draw.ellipse(self.screen, constants.WHITE, self.ball.pygame_rect)
@@ -77,10 +78,11 @@ class ClassicGame(GameMode):
         pygame.display.flip()
         # Set the frames per second
         self.clock.tick(constants.FPS)
+        print(self.clock.get_fps())
     
     def getInput(self):
         #self.screen.fill(constants.WHITE)
-        graphics.drawInputBackground(self.screen)
+        self.graphics.drawBackgroundImage(self.screen, self.graphics.title_background_image)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False

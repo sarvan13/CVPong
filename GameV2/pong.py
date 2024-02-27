@@ -8,7 +8,7 @@ from GameV2.gameLogic.infiniteGame import InfiniteGame
 from GameV2.gameLogic.twoPlayerGame import TwoPlayerGame
 from GameV2.gameLogic.gameMode import GameMode
 import constants
-import graphics
+from graphics import Graphics
 
 # Initialize Pygame
 pygame.init()
@@ -23,6 +23,7 @@ selected_option = 0
 # Fonts
 font = pygame.font.Font("fonts/miami.ttf", constants.DEFAULT_FONT_SIZE)
 selected_font = pygame.font.Font("fonts/miami.ttf", constants.SELECTED_FONT_SIZE)
+graphics = Graphics(screen)
 
 #initialized camera and hand model
 mp_hands = mp.solutions.hands
@@ -36,7 +37,7 @@ game = None
 
 while gameState != constants.State.EXIT:
     if gameState == constants.State.MENU:
-        graphics.drawBackground(screen)
+        graphics.drawTitleBackground(screen)
         for i, option in enumerate (constants.options):
             if i == selected_option:
                 text = selected_font.render(option, True, constants.BLACK)
