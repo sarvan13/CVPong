@@ -11,6 +11,14 @@ class Graphics:
         self.title_background_image = pygame.image.load("images/menu_bckg.png")
         self.title_background_image = pygame.transform.scale(self.title_background_image, (constants.WIDTH, constants.HEIGHT))
         self.title_background_image = self.title_background_image.convert()
+        
+        self.font_thor = pygame.font.Font("fonts/thor.ttf", constants.DEFAULT_FONT_SIZE)
+        self.font_thor_selected = pygame.font.Font("fonts/thor.ttf", constants.SELECTED_FONT_SIZE)
+        self.font_thor_title = pygame.font.Font("fonts/thor.ttf", constants.TITLE_FONT_SIZE)
+
+        self.font_bayshore = pygame.font.Font("fonts/Bayshore.ttf", constants.DEFAULT_FONT_SIZE + constants.BAYSHORE_ADJ)
+        self.font_bayshore_selected = pygame.font.Font("fonts/Bayshore.ttf", constants.SELECTED_FONT_SIZE + constants.BAYSHORE_ADJ)
+        self.font_bayshore_title = pygame.font.Font("fonts/Bayshore.ttf", constants.TITLE_FONT_SIZE + constants.BAYSHORE_ADJ)
 
     def drawTitleBackground(self, screen):
         self.screen.blit(self.title_background_image, (0,0))

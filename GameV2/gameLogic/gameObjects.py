@@ -6,9 +6,9 @@ import numpy as np
 from time import time
 
 class Paddle:
-    def __init__(self, pygame_rect, speed):
+    def __init__(self, pygame_rect):
         self.pygame_rect = pygame_rect
-        self.speed = speed
+        self.speed = 0
         self.time_last_hit = -1
     
     # Draw
@@ -42,10 +42,12 @@ class Paddle:
     
     def movePlayerKey(self, key_up, key_down):
         keys = pygame.key.get_pressed()
+        prevy = self.pygame_rect.y
         if keys[key_up] and self.pygame_rect.top > 0:
             self.pygame_rect.y -= constants.PADDLE_SPEED
         if keys[key_down] and self.pygame_rect.bottom < constants.HEIGHT:
             self.pygame_rect.y += constants.PADDLE_SPEED
+        self.speed = self.pygame_rect.y - prevy
     
     def moveComp(self, movespeed, ball):
         paddle_x = self.pygame_rect.right
@@ -59,8 +61,10 @@ class Paddle:
 
             if abs(diff) > movespeed:
                 self.pygame_rect.centery = (diff/abs(diff))*movespeed + self.pygame_rect.centery
+                self.speed = (diff/abs(diff))*movespeed
             else:
                 self.pygame_rect.centery = ball_traj_y
+                self.speed = diff
             
             if self.pygame_rect.top < 0:
                 self.pygame_rect.top = 0
@@ -115,17 +119,15 @@ class Ball:
         # to unwanted edge case behaviour so we put the paddle on a collision cool down of 200 ms
         if self.pygame_rect.colliderect(paddle.pygame_rect) and (self.time - paddle.time_last_hit) > 0.2:
             paddle.time_last_hit = self.time
+            # This means the ball is either on the corner or bottom of the paddle
             if self.pygame_rect.bottom > paddle.pygame_rect.bottom:
-                # This means the ball is either on the corner or bottom of the paddle
                 self.vy = abs(self.vy) # force the ball to bounce down
-
                 # If its a corner bounce it back to the playing field but with a potentially changed y
                 if self.pygame_rect.right > (paddle.pygame_rect.right + self.pygame_rect.width // 2) \
                     or self.pygame_rect.left < (paddle.pygame_rect.left - self.pygame_rect.width // 2):
                     self.vx = -self.vx
                     self.vx = self.vx / abs(self.vx) + self.vx
                     self.vy = self.vy / abs(self.vy) + self.vy
-
             elif self.pygame_rect.top < paddle.pygame_rect.top:
                 # ball is either on corner or top of paddle
                 self.vy = -1 * abs(self.vy) # force ball up
@@ -137,5 +139,35 @@ class Ball:
                     self.vy = self.vy / abs(self.vy) + self.vy
             else:
                 self.vx = -self.vx
-                self.vx = self.vx / abs(self.vx) + self.vx
-                self.vy = self.vy / abs(self.vy) + self.vy
+                self.vx = (self.vx / abs(self.vx))*constants.SPEED_MULT + self.vx
+                self.vy = (self.vy / abs(self.vy)*constants.SPEED_MULT) + self.vy
+            
+            # Now we add in the speed from the paddle
+            curr_energy = self.vy**2 + self.vx**2
+            max_energy = curr_energy + constants.MAX_SPEED_INC**2
+            new_y_speed = self.vy + paddle.speed
+            new_x_speed = self.vx
+            new_energy = new_y_speed**2 + new_x_speed**2
+            # if abs(new_y_speed) < abs(self.vy):
+            #     # paddle is going the other way and I want energy to never decrease ie:
+            #     # new_x_speed**2 + new_y_speed**2 = self.vy**2 + self.vx**2
+            #     new_x_speed = self.vx / abs(self.vx) * np.sqrt(curr_energy - new_y_speed**2)
+            #     self.vx = np.clip(new_x_speed, -abs(self.vx) - constants.MAX_SPEED_INC \
+            #                       , abs(self.vx) + constants.MAX_SPEED_INC)
+            
+            # self.vy = np.clip(new_y_speed, -abs(self.vy) - constants.MAX_SPEED_INC \
+            #                   , abs(self.vy) +  constants.MAX_SPEED_INC)
+            if (new_energy > max_energy):
+                new_energy = max_energy
+            elif (new_energy < curr_energy):
+                new_energy = curr_energy
+            
+            theta = np.arctan2(new_y_speed, new_x_speed)
+            if abs(abs(theta) - (np.pi / 2)) < np.radians(constants.MIN_ANGLE):
+                # Too close to vertical push it past min angle
+                if abs(theta) < np.pi / 2:
+                    theta = theta / abs(theta) * ((np.pi / 2) - constants.MIN_ANGLE)
+                else:
+                    theta = theta / abs(theta) * ((np.pi / 2) + constants.MIN_ANGLE)
+            self.vy = np.sqrt(new_energy) * np.sin(theta)
+            self.vx = np.sqrt(new_energy) * np.cos(theta)

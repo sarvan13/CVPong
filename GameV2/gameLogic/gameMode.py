@@ -12,6 +12,7 @@ class GameMode(ABC):
         self.fadeIn = True
         self.returnMenu = False
         self.gameOver = False
+        self.endText = ""
     
     def runGame(self):
         while self.useCV == -1:
@@ -30,6 +31,7 @@ class GameMode(ABC):
             self.calculateFrame()
             self.drawFrame()
             self.displayPygame()
+            self.checkGameOver()
     
     @abstractmethod
     def pauseScreen(self):
@@ -65,4 +67,8 @@ class GameMode(ABC):
 
     @abstractmethod
     def countDown(self):
+        pass
+
+    @abstractmethod
+    def checkGameOver(self):
         pass
