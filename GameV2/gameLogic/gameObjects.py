@@ -1,5 +1,6 @@
 import pygame
 import GameV2.constants as constants
+import GameV2.sounds.sounds as sounds
 import cv2
 import mediapipe as mp
 import numpy as np
@@ -12,8 +13,7 @@ class Paddle:
         self.speed = 0
         self.time_last_hit = -1
     
-    def movePlayerCV(self, frame, mp_hands, hands, use_left=False):
-        results = hands.process(frame)
+    def movePlayerCV(self, frame, results, mp_hands, use_left=False):
         frame_height = frame.shape[0]
         frame_edge = (1 - constants.FRAME_SCALE) / 2
 
@@ -30,26 +30,14 @@ class Paddle:
                 
                 game_y = np.clip(cy, frame_height * frame_edge, frame_height * (1-frame_edge)) - (frame_height * frame_edge)
                 game_y = game_y * (constants.HEIGHT/ (frame_height *constants.FRAME_SCALE))
-                game_y = np.clip(game_y, self.pygame_rect.height // 2, constants.HEIGHT - self.pygame_rect.height // 2)
+                game_y = np.clip(game_y, self.pygame_rect.height // 2, constants.HEIGHT - self.pygame_rect.height // 2) + constants.TOP_SCREEN_OFFSET
                 self.speed = game_y - self.pygame_rect.centery
-                self.pygame_rect.centery = game_y + constants.TOP_SCREEN_OFFSET
-                # Draw a circle at the center of the hand
-                cv2.circle(frame, (cx, cy), 10, constants.PINK, -1)
+                self.pygame_rect.centery = game_y
 
-                # If the right hand is on the left hand
-                # if not use_left and cx < frame.shape[1] // 2:
-
-        
-        cv2.rectangle(frame, (0, int(frame_height * frame_edge)), (frame.shape[1], int(frame_height * (1-frame_edge))), constants.PINK, 3)
-        pygame_frame = cv2.resize(frame, (constants.CAMERA_WIDTH, constants.CAMERA_HEIGHT))
-        pygame_frame = np.rot90(pygame_frame)
-        pygame_frame = pygame.surfarray.make_surface(pygame_frame)
-        return pygame_frame
     
     # This method should only be called on the right paddle and is used only in 2 player modes
     # If I have time - combine this function with the other CV function - its doable but not priority
-    def moveRightLeftPaddleCV(self, frame, mp_hands, hands, left_paddle):
-        results = hands.process(frame)
+    def moveRightLeftPaddleCV(self, frame, results, mp_hands, left_paddle):
         frame_height = frame.shape[0]
         frame_edge = (1 - constants.FRAME_SCALE) / 2
 
@@ -62,25 +50,16 @@ class Paddle:
                 
                 game_y = np.clip(cy, frame_height * frame_edge, frame_height * (1-frame_edge)) - (frame_height * frame_edge)
                 game_y = game_y * (constants.HEIGHT/ (frame_height *constants.FRAME_SCALE))
-                game_y = np.clip(game_y, self.pygame_rect.height // 2, constants.HEIGHT - self.pygame_rect.height // 2)
+                game_y = np.clip(game_y, self.pygame_rect.height // 2, constants.HEIGHT - self.pygame_rect.height // 2) + constants.TOP_SCREEN_OFFSET
                 
                 if is_left:
                     left_paddle.speed = game_y - self.pygame_rect.centery
-                    left_paddle.pygame_rect.centery = game_y + constants.TOP_SCREEN_OFFSET
+                    left_paddle.pygame_rect.centery = game_y 
                 else:
                     self.speed = game_y - self.pygame_rect.centery
-                    self.pygame_rect.centery = game_y + constants.TOP_SCREEN_OFFSET
-                # Draw a circle at the center of the hand
-                cv2.circle(frame, (cx, cy), 10, constants.PINK, -1)
-        
-        cv2.rectangle(frame, (0, int(frame_height * frame_edge)), (frame.shape[1], int(frame_height * (1-frame_edge))), constants.PINK, 3)
-        pygame_frame = cv2.resize(frame, (constants.CAMERA_WIDTH, constants.CAMERA_HEIGHT))
-        pygame_frame = np.rot90(pygame_frame)
-        pygame_frame = pygame.surfarray.make_surface(pygame_frame)
-        return pygame_frame
+                    self.pygame_rect.centery = game_y
 
 
-    
     def movePlayerKey(self, key_up, key_down):
         keys = pygame.key.get_pressed()
         prevy = self.pygame_rect.y
@@ -135,6 +114,7 @@ class Ball:
         self.past_left = 0
         self.past_right = 0
         self.time = time()
+        self.pong_sound = sounds.loadPongSound()
 
     def moveBall(self, left_paddle, right_paddle):
         self.time = time()
@@ -168,6 +148,7 @@ class Ball:
         # to unwanted edge case behaviour so we put the paddle on a collision cool down of 200 ms
         if self.pygame_rect.colliderect(paddle.pygame_rect) and (self.time - paddle.time_last_hit) > 0.2:
             paddle.time_last_hit = self.time
+            self.pong_sound.play()
             # This means the ball is either on the corner or bottom of the paddle
             if self.pygame_rect.bottom > paddle.pygame_rect.bottom:
                 self.vy = abs(self.vy) # force the ball to bounce down

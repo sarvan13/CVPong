@@ -1,10 +1,12 @@
 from GameV2.gameLogic.gameMode import GameMode
 from GameV2.gameLogic.gameObjects import Paddle, Ball
 from GameV2.graphics import Graphics
-import pygame
+import GameV2.sounds.sounds as sounds
 import GameV2.constants as constants
+import pygame
 import cv2
 import mediapipe as mp
+import numpy as np
 
 class ClassicGame(GameMode):
     def __init__(self, screen, cap, mp_hands, hands):
@@ -33,6 +35,7 @@ class ClassicGame(GameMode):
         self.camera_pos = (constants.LEFT_SCREEN_OFFSET + constants.WIDTH//2 - constants.CAMERA_WIDTH//2, \
                           constants.SCREEN_HEIGHT - constants.BOTTOM_SCREEN_OFFSET //2 \
                             - constants.CAMERA_HEIGHT //2)
+        self.game_over_sound = sounds.loadGameOverSound()
 
     def runGame(self):
         return super().runGame()
@@ -54,12 +57,40 @@ class ClassicGame(GameMode):
                 self.running = False
             # Convert the BGR image to RGB
             rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            self.camera_frame = self.right_paddle.movePlayerCV(rgb_frame, self.mp_hands, self.hands)
+            results = self.hands.process(rgb_frame)
+            self.right_paddle.movePlayerCV(rgb_frame, results, self.mp_hands)
+            self.analyzeCVFrame(results, rgb_frame)
+
         else:
             self.right_paddle.movePlayerKey(pygame.K_UP, pygame.K_DOWN)
 
         self.ball.moveBall(self.left_paddle, self.right_paddle)
         self.left_paddle.moveComp(constants.COMP_SPEED, self.ball)
+    
+    # This does CV analysis for the game state - use the hand to pause the frame by moving it to the other side
+    # Also gets the frame to display 
+    def analyzeCVFrame(self, results, frame):
+        frame_height = frame.shape[0]
+        frame_edge = (1 - constants.FRAME_SCALE) / 2
+        if results.multi_hand_landmarks:
+            for hand_landmarks in results.multi_hand_landmarks:
+                # Get the coordinates of the center of the hand
+                cx, cy = int(hand_landmarks.landmark[self.mp_hands.HandLandmark.RING_FINGER_MCP].x * frame.shape[1]), \
+                         int(hand_landmarks.landmark[self.mp_hands.HandLandmark.RING_FINGER_MCP].y * frame.shape[0])
+                cv2.circle(frame, (cx, cy), 10, constants.PINK, -1)
+
+                is_left = self.right_paddle.isLeftHand(self.mp_hands, hand_landmarks)
+
+                # Moving right hand to lfhs of screen will pause
+                if not is_left:
+                    if cx > frame.shape[1] * (1 - constants.PAUSE_DIST):
+                        self.paused = True
+            # Get frame with rectangles for displaying on game
+            cv2.rectangle(frame, (0, int(frame_height * frame_edge)), (frame.shape[1], int(frame_height * (1-frame_edge))), constants.PINK, 3)
+            pygame_frame = cv2.resize(frame, (constants.CAMERA_WIDTH, constants.CAMERA_HEIGHT))
+            pygame_frame = np.rot90(pygame_frame)
+            pygame_frame = pygame.surfarray.make_surface(pygame_frame)
+            self.camera_frame = pygame_frame
     
     def updateScore(self):
         self.right_score = self.ball.past_left
@@ -101,12 +132,28 @@ class ClassicGame(GameMode):
             self.paused = True
             self.gameOver = True
             self.endText = "You Win!"
+            self.game_over_sound.play()
             self.resetGame()
         elif (self.left_score == constants.WIN_SCORE):
             self.paused = True
             self.gameOver = True
             self.endText = "You Lose"
+            self.game_over_sound.play()
             self.resetGame()
+    
+    def resetGame(self):
+        self.left_score = 0
+        self.right_score = 0
+        self.ball.vx = constants.BALL_SPEED
+        self.ball.vy = constants.BALL_SPEED
+        self.ball.pygame_rect.x = constants.LEFT_SCREEN_OFFSET + constants.WIDTH // 2 - self.ball.pygame_rect.width // 2
+        self.ball.pygame_rect.y = constants.LEFT_SCREEN_OFFSET + constants.HEIGHT // 2 - self.ball.pygame_rect.height // 2
+        self.left_paddle.pygame_rect.y = constants.TOP_SCREEN_OFFSET + constants.HEIGHT // 2 \
+              - self.left_paddle.pygame_rect.height //2
+        self.right_paddle.pygame_rect.y = constants.TOP_SCREEN_OFFSET + constants.HEIGHT // 2 \
+            - self.right_paddle.pygame_rect.height //2
+        self.ball.past_left = 0
+        self.ball.past_right = 0
     
     def getInput(self):
         #self.screen.fill(constants.WHITE)
@@ -160,6 +207,7 @@ class ClassicGame(GameMode):
                     elif self.selected_input == 1:
                         self.returnMenu = True
                         self.running = False
+                        print("returning")
                     self.paused = False
                     self.gameOver = False
                 elif event.key == pygame.K_ESCAPE:
@@ -226,18 +274,4 @@ class ClassicGame(GameMode):
                         self.paused = False
             k = k + 1
         self.fadeIn = False
-    
-    def resetGame(self):
-        self.left_score = 0
-        self.right_score = 0
-        self.ball.vx = constants.BALL_SPEED
-        self.ball.vy = constants.BALL_SPEED
-        self.ball.pygame_rect.x = constants.LEFT_SCREEN_OFFSET + constants.WIDTH // 2 - self.ball.pygame_rect.width // 2
-        self.ball.pygame_rect.y = constants.LEFT_SCREEN_OFFSET + constants.HEIGHT // 2 - self.ball.pygame_rect.height // 2
-        self.left_paddle.pygame_rect.y = constants.TOP_SCREEN_OFFSET + constants.HEIGHT // 2 \
-              - self.left_paddle.pygame_rect.height //2
-        self.right_paddle.pygame_rect.y = constants.TOP_SCREEN_OFFSET + constants.HEIGHT // 2 \
-            - self.right_paddle.pygame_rect.height //2
-        self.ball.past_left = 0
-        self.ball.past_right = 0
         

@@ -25,7 +25,9 @@ class InfiniteGame(ClassicGame):
                 self.running = False
             # Convert the BGR image to RGB
             rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            self.camera_frame = self.right_paddle.movePlayerCV(rgb_frame, self.mp_hands, self.hands)
+            results = self.hands.process(rgb_frame)
+            self.right_paddle.movePlayerCV(rgb_frame, results, self.mp_hands)
+            self.analyzeCVFrame(results, rgb_frame)
         else:
             self.right_paddle.movePlayerKey(pygame.K_UP, pygame.K_DOWN)
         
@@ -47,6 +49,7 @@ class InfiniteGame(ClassicGame):
             self.endText = str(self.score)
             self.gameOver = True
             self.paused = True
+            self.game_over_sound.play()
             self.resetGame()
 
 

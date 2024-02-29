@@ -21,7 +21,9 @@ class TwoPlayerGame(ClassicGame):
                 self.running = False
             # Convert the BGR image to RGB
             rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            self.camera_frame = self.right_paddle.moveRightLeftPaddleCV(frame, self.mp_hands, self.hands, self.left_paddle)
+            results = self.hands.process(rgb_frame)
+            self.right_paddle.moveRightLeftPaddleCV(frame, results, self.mp_hands, self.left_paddle)
+            self.analyzeCVFrame(results, rgb_frame)
         else:   
             self.right_paddle.movePlayerKey(pygame.K_UP, pygame.K_DOWN)
             self.left_paddle.movePlayerKey(pygame.K_w, pygame.K_s)

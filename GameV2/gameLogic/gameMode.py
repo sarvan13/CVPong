@@ -18,13 +18,14 @@ class GameMode(ABC):
         while self.useCV == -1:
             self.getInput()
         
-        if self.fadeIn:
+        if self.fadeIn and self.running:
             self.countDown()
 
         while(self.running):
             while self.paused:
                 self.pauseScreen()
-            if self.fadeIn:
+                self.fadeIn = True
+            if self.fadeIn and self.running:
                 self.countDown()
             self.interruptGame()
             self.updateScore()
@@ -33,42 +34,55 @@ class GameMode(ABC):
             self.displayPygame()
             self.checkGameOver()
     
-    @abstractmethod
-    def pauseScreen(self):
-        pass
-
-    @abstractmethod
-    def getInput(self):
-        pass
-
+    # This method is where the work of the game is done. It is where we calculate what the next
+    # frame should look like. All vision and physics should be done within this method
     @abstractmethod
     def calculateFrame(self):
         pass
 
+    # Calculate/update the score for each game
     @abstractmethod
     def updateScore(self):
         pass
 
+    # Draw the shapes on the pygame surface
     @abstractmethod
     def drawFrame(self):
         pass
     
+    # Display the surface to the users screen
     @abstractmethod
     def displayPygame():
         pass
 
+    # Handles any interrupts ie quitting the game and setting the state to paused
     @abstractmethod
     def interruptGame(self):
         pass
 
+    # Check and enforce the game over requirement 
+    @abstractmethod
+    def checkGameOver(self):
+        pass
+
+    # Reset the game state - should be called within checkGameOver when the game is over
     @abstractmethod
     def resetGame(self):
         pass
 
+    # Handle displaying the pause screen and setting the game state afterwards
+    # displays a menu selection screen
     @abstractmethod
-    def countDown(self):
+    def pauseScreen(self):
         pass
 
+    # Gets the players desired input method (KB or CV)
+    # displays a menu selection screen
     @abstractmethod
-    def checkGameOver(self):
+    def getInput(self):
+        pass
+
+    # 3 second count down on beginning of game
+    @abstractmethod
+    def countDown(self):
         pass
