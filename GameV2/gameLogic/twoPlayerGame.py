@@ -28,7 +28,12 @@ class TwoPlayerGame(ClassicGame):
             self.right_paddle.movePlayerKey(pygame.K_UP, pygame.K_DOWN)
             self.left_paddle.movePlayerKey(pygame.K_w, pygame.K_s)
             
-        self.ball.moveBall(self.left_paddle, self.right_paddle)
+        self.ball.moveBall(self.left_paddle, self.right_paddle, self.particles)
+
+        # Progress and kill particles
+        for particle in self.particles:
+            particle.move()
+        self.particles = [particle for particle in self.particles if particle.lifetime > 0]
         
     def checkGameOver(self):
         if (self.right_score == constants.WIN_SCORE):

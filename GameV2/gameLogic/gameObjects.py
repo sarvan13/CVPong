@@ -116,13 +116,13 @@ class Ball:
         self.time = time()
         self.pong_sound = sounds.loadPongSound()
 
-    def moveBall(self, left_paddle, right_paddle):
+    def moveBall(self, left_paddle, right_paddle, particles):
         self.time = time()
         self.pygame_rect.x += self.vx
         self.pygame_rect.y += self.vy
 
-        self.checkPaddleCollision(left_paddle)
-        self.checkPaddleCollision(right_paddle)
+        self.checkPaddleCollision(left_paddle, particles)
+        self.checkPaddleCollision(right_paddle, particles)
 
         if self.pygame_rect.top <= constants.TOP_SCREEN_OFFSET:
             self.vy = abs(self.vy)
@@ -143,15 +143,18 @@ class Ball:
             self.vx = -constants.BALL_SPEED
             self.vy = constants.BALL_SPEED
     
-    def checkPaddleCollision(self, paddle):
+    def checkPaddleCollision(self, paddle, particles):
         # We dont want to keep checking the same paddle if we already collided with it otherwise it leads
         # to unwanted edge case behaviour so we put the paddle on a collision cool down of 200 ms
         if self.pygame_rect.colliderect(paddle.pygame_rect) and (self.time - paddle.time_last_hit) > 0.2:
             paddle.time_last_hit = self.time
+            particle_sourcex = paddle.pygame_rect.left # assume it collided with right paddle
+            particle_sourcey = self.pygame_rect.centery
             self.pong_sound.play()
             # This means the ball is either on the corner or bottom of the paddle
             if self.pygame_rect.bottom > paddle.pygame_rect.bottom:
                 self.vy = abs(self.vy) # force the ball to bounce down
+                particle_sourcey = paddle.pygame_rect.bottom
                 # If its a corner bounce it back to the playing field but with a potentially changed y
                 if self.pygame_rect.right > (paddle.pygame_rect.right + self.pygame_rect.width // 2) \
                     or self.pygame_rect.left < (paddle.pygame_rect.left - self.pygame_rect.width // 2):
@@ -161,6 +164,7 @@ class Ball:
             elif self.pygame_rect.top < paddle.pygame_rect.top:
                 # ball is either on corner or top of paddle
                 self.vy = -1 * abs(self.vy) # force ball up
+                particle_sourcey = paddle.pygame_rect.top
 
                 if self.pygame_rect.right > (paddle.pygame_rect.right + self.pygame_rect.width // 2) \
                     or self.pygame_rect.left < (paddle.pygame_rect.left - self.pygame_rect.width // 2):
@@ -192,6 +196,13 @@ class Ball:
                     theta = theta / abs(theta) * ((np.pi / 2) + constants.MIN_ANGLE)
             self.vy = np.sqrt(new_energy) * np.sin(theta)
             self.vx = np.sqrt(new_energy) * np.cos(theta)
+
+            # Finally add particles at collision source
+            if (self.pygame_rect.right > paddle.pygame_rect.right):
+                particle_sourcex = paddle.pygame_rect.right
+
+            particles.extend([Particle((particle_sourcex, particle_sourcey), \
+                                       [random.uniform(-3, 3), random.uniform(-3, 3)]) for _ in range(constants.NUM_PARTICLES)])
 
 class PowerUp:
     def __init__(self, pygame_rect, type):

@@ -36,6 +36,7 @@ class ClassicGame(GameMode):
                           constants.SCREEN_HEIGHT - constants.BOTTOM_SCREEN_OFFSET //2 \
                             - constants.CAMERA_HEIGHT //2)
         self.game_over_sound = sounds.loadGameOverSound()
+        self.particles = []
 
     def runGame(self):
         return super().runGame()
@@ -64,8 +65,13 @@ class ClassicGame(GameMode):
         else:
             self.right_paddle.movePlayerKey(pygame.K_UP, pygame.K_DOWN)
 
-        self.ball.moveBall(self.left_paddle, self.right_paddle)
+        self.ball.moveBall(self.left_paddle, self.right_paddle, self.particles)
         self.left_paddle.moveComp(constants.COMP_SPEED, self.ball)
+
+        # Progress and kill particles
+        for particle in self.particles:
+            particle.move()
+        self.particles = [particle for particle in self.particles if particle.lifetime > 0]
     
     # This does CV analysis for the game state - use the hand to pause the frame by moving it to the other side
     # Also gets the frame to display 
@@ -110,6 +116,9 @@ class ClassicGame(GameMode):
         pygame.draw.rect(self.screen, constants.PINK, self.left_paddle.pygame_rect)
         pygame.draw.rect(self.screen, constants.PINK, self.right_paddle.pygame_rect)
         pygame.draw.ellipse(self.screen, constants.WHITE, self.ball.pygame_rect)
+
+        for particle in self.particles:
+            pygame.draw.circle(self.screen, (255,255,255, 100), (int(particle.position[0]), int(particle.position[1])), 3)
         
         # Display Score
         self.drawScore()
