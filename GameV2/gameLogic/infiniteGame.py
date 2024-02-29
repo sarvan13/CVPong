@@ -31,7 +31,12 @@ class InfiniteGame(ClassicGame):
         else:
             self.right_paddle.movePlayerKey(pygame.K_UP, pygame.K_DOWN)
         
-        self.ball.moveBall(self.left_paddle, self.right_paddle)
+        self.ball.moveBall(self.left_paddle, self.right_paddle, self.particles)
+
+        # Progress and kill particles
+        for particle in self.particles:
+            particle.move()
+        self.particles = [particle for particle in self.particles if particle.lifetime > 0]
     
     def updateScore(self):
         # Override to calculate score based on number of returns 

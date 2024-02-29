@@ -1,16 +1,27 @@
 from enum import Enum 
 
 FPS = 30
+
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 PINK = (252,70,236)
+
 BALL_SPEED = 12
-PADDLE_SPEED = 17
-COMP_SPEED = 10
+BALL_RADIUS = 15
 MAX_SPEED_INC = 6
 SPEED_MULT = 0.5
 MIN_ANGLE = 20
+
+
+PADDLE_SPEED = 17
+COMP_SPEED = 10
+PADDLE_WIDTH = 20
+PADDLE_HEIGHT = 100
+TOP_PADDLE_OFFSET = 50
+HORIZ_PADDLE_OFFSET = 50
+
 COUNTDOWN_NUM_WIDTH = 21
+
 FRAME_SCALE = 0.7
 WIN_SCORE = 7
 WIDTH, HEIGHT = 800, 600
@@ -27,17 +38,20 @@ BORDER_THICKNESS = 3
 CAMERA_WIDTH = 300
 CAMERA_HEIGHT = 170
 PAUSE_DIST = 0.3
+NUM_PARTICLES = 7
+TRAIL_LEN = 4
 
 DEFAULT_FONT_SIZE = 36
 SELECTED_FONT_SIZE = 46
 TITLE_FONT_SIZE = 56
 BAYSHORE_ADJ = 20
 
-options = ["Classic", "Infinite", "Two Player", "Exit"]
+options = ["Classic", "Infinite", "Two Player", "Double Trouble (BETA)", "Exit"]
 
 class State(Enum):
     MENU = 0
     CLASSIC = 1
     INFINITE = 2
     PVP = 3
-    EXIT = 4
+    DOUBLE = 4
+    EXIT = 5

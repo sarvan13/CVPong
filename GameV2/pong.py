@@ -7,6 +7,7 @@ from GameV2.gameLogic.classicGame import ClassicGame
 from GameV2.gameLogic.infiniteGame import InfiniteGame
 from GameV2.gameLogic.twoPlayerGame import TwoPlayerGame
 from GameV2.gameLogic.gameMode import GameMode
+from GameV2.gameLogic.doublePaddleGame import DoublePaddleGame
 import constants
 from graphics import Graphics
 
@@ -70,6 +71,8 @@ while gameState != constants.State.EXIT:
         game = InfiniteGame(screen, cap, mp_hands, hands)
     elif gameState == constants.State.PVP:
         game = TwoPlayerGame(screen, cap, mp_hands, hands)
+    elif gameState == constants.State.DOUBLE:
+        game = DoublePaddleGame(screen, cap, mp_hands, hands)
 
     if game and gameState != constants.State.EXIT:
         game.runGame()

@@ -116,13 +116,13 @@ class Ball:
         self.time = time()
         self.pong_sound = sounds.loadPongSound()
 
-    def moveBall(self, left_paddle, right_paddle):
+    def moveBall(self, left_paddle, right_paddle, particles):
         self.time = time()
         self.pygame_rect.x += self.vx
         self.pygame_rect.y += self.vy
 
-        self.checkPaddleCollision(left_paddle)
-        self.checkPaddleCollision(right_paddle)
+        self.checkPaddleCollision(left_paddle, particles)
+        self.checkPaddleCollision(right_paddle, particles)
 
         if self.pygame_rect.top <= constants.TOP_SCREEN_OFFSET:
             self.vy = abs(self.vy)
@@ -143,14 +143,17 @@ class Ball:
             self.vx = -constants.BALL_SPEED
             self.vy = constants.BALL_SPEED
     
-    def checkPaddleCollision(self, paddle):
+    def checkPaddleCollision(self, paddle, particles):
         # We dont want to keep checking the same paddle if we already collided with it otherwise it leads
         # to unwanted edge case behaviour so we put the paddle on a collision cool down of 200 ms
         if self.pygame_rect.colliderect(paddle.pygame_rect) and (self.time - paddle.time_last_hit) > 0.2:
             paddle.time_last_hit = self.time
+            particle_sourcex = paddle.pygame_rect.left # assume it collided with right paddle
+            particle_sourcey = self.pygame_rect.centery
             self.pong_sound.play()
             # This means the ball is either on the corner or bottom of the paddle
             if self.pygame_rect.bottom > paddle.pygame_rect.bottom:
+                particle_sourcey = paddle.pygame_rect.bottom
                 self.vy = abs(self.vy) # force the ball to bounce down
                 # If its a corner bounce it back to the playing field but with a potentially changed y
                 if self.pygame_rect.right > (paddle.pygame_rect.right + self.pygame_rect.width // 2) \
@@ -160,6 +163,7 @@ class Ball:
                     self.vy = self.vy / abs(self.vy) + self.vy
             elif self.pygame_rect.top < paddle.pygame_rect.top:
                 # ball is either on corner or top of paddle
+                particle_sourcey = paddle.pygame_rect.top
                 self.vy = -1 * abs(self.vy) # force ball up
 
                 if self.pygame_rect.right > (paddle.pygame_rect.right + self.pygame_rect.width // 2) \
@@ -193,12 +197,77 @@ class Ball:
             self.vy = np.sqrt(new_energy) * np.sin(theta)
             self.vx = np.sqrt(new_energy) * np.cos(theta)
 
+            # Finally add particles at collision source
+            if (self.pygame_rect.right > paddle.pygame_rect.right):
+                particle_sourcex = paddle.pygame_rect.right
+
+            particles.extend([Particle((particle_sourcex, particle_sourcey), \
+                                       [random.uniform(-3, 3), random.uniform(-3, 3)]) for _ in range(constants.NUM_PARTICLES)])
+        
+    def checkHorizPaddleCollisions(self, paddle, particles):
+        if self.pygame_rect.colliderect(paddle.pygame_rect) and (self.time - paddle.time_last_hit) > 0.2:
+            paddle.time_last_hit = self.time
+            particle_sourcex = self.pygame_rect.centerx  
+            particle_sourcey = paddle.pygame_rect.top # assume it collided with bot paddle
+            self.pong_sound.play()
+            
+            if self.pygame_rect.left < paddle.pygame_rect.left:
+                particle_sourcex = paddle.pygame_rect.left
+                self.vx = -1*abs(self.vx) # force the ball to bounce left
+                # If its a corner bounce it back to the playing field but with a potentially changed y
+                if self.pygame_rect.bottom > (paddle.pygame_rect.top + self.pygame_rect.width // 2) \
+                    or self.pygame_rect.top < (paddle.pygame_rect.bottom - self.pygame_rect.width // 2):
+                    self.vy = -self.vy
+                    self.vx = self.vx / abs(self.vx) + self.vx
+                    self.vy = self.vy / abs(self.vy) + self.vy
+            elif self.pygame_rect.right > paddle.pygame_rect.right:
+                # ball is either on corner or top of paddle
+                particle_sourcex = paddle.pygame_rect.right
+                self.vx = abs(self.vx) # force ball up
+
+                if self.pygame_rect.bottom > (paddle.pygame_rect.top + self.pygame_rect.width // 2) \
+                    or self.pygame_rect.top < (paddle.pygame_rect.bottom - self.pygame_rect.width // 2):
+                    self.vy = -self.vy
+                    self.vx = self.vx / abs(self.vx) + self.vx
+                    self.vy = self.vy / abs(self.vy) + self.vy
+            else:
+                self.vy = -self.vy
+                self.vx = (self.vx / abs(self.vx))*constants.SPEED_MULT + self.vx
+                self.vy = (self.vy / abs(self.vy)*constants.SPEED_MULT) + self.vy
+            
+            # Now we add in the speed from the paddle
+            curr_energy = self.vy**2 + self.vx**2
+            max_energy = curr_energy + constants.MAX_SPEED_INC**2
+            new_y_speed = self.vy
+            new_x_speed = self.vx + paddle.speed
+            new_energy = new_y_speed**2 + new_x_speed**2
+            if (new_energy > max_energy):
+                new_energy = max_energy
+            elif (new_energy < curr_energy):
+                new_energy = curr_energy
+            
+            theta = np.arctan2(new_y_speed, new_x_speed)
+            if abs(abs(theta) - (np.pi / 2)) < np.radians(constants.MIN_ANGLE):
+                # Too close to vertical push it past min angle
+                if abs(theta) < np.pi / 2:
+                    theta = theta / abs(theta) * ((np.pi / 2) - constants.MIN_ANGLE)
+                else:
+                    theta = theta / abs(theta) * ((np.pi / 2) + constants.MIN_ANGLE)
+            self.vy = np.sqrt(new_energy) * np.sin(theta)
+            self.vx = np.sqrt(new_energy) * np.cos(theta)
+
+            # Finally add particles at collision source
+            if (self.pygame_rect.top > paddle.pygame_rect.top):
+                particle_sourcey = paddle.pygame_rect.top
+
+            particles.extend([Particle((particle_sourcex, particle_sourcey), \
+                                       [random.uniform(-3, 3), random.uniform(-3, 3)]) for _ in range(constants.NUM_PARTICLES)])
+
+
 class PowerUp:
     def __init__(self, pygame_rect, type):
         self.pygame_rect = pygame_rect
         self.type = type
-    
-
 
 class Particle:
     def __init__(self, position, speed):
@@ -211,3 +280,80 @@ class Particle:
         self.position[1] += self.speed[1]
         self.lifetime -= 1
 
+class DoublePaddle(Paddle):
+    def __init__(self, pygame_rect):
+        super().__init__(pygame_rect)
+    
+    def movePlayerCV(self, frame, results, mp_hands, use_left=False):
+        super().movePlayerCV(frame, results, mp_hands, use_left)
+        self.clampVert()
+    
+    def movePlayerKey(self, key_up, key_down):
+        super().movePlayerKey(key_up, key_down)
+        self.clampVert()
+
+    def moveComp(self, movespeed, ball):
+        super().moveComp(movespeed, ball)
+        self.clampVert()
+
+    def moveTopPlayerCV(self, frame, results, mp_hands):
+        frame_width = frame.shape[1]
+        frame_edge = (1 - constants.FRAME_SCALE) / 2
+
+        if results.multi_hand_landmarks:
+            for hand_landmarks in results.multi_hand_landmarks:
+                is_left = self.isLeftHand(mp_hands, hand_landmarks)
+                if not is_left:
+                    continue
+                # Get the coordinates of the center of the hand
+                cx, cy = int(hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_MCP].x * frame.shape[1]), \
+                         int(hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_MCP].y * frame.shape[0])
+                
+                cx = int((1 - cx / frame_width) * frame_width) # flip the coordinate system
+                game_x = np.clip(cx, frame_width * frame_edge, frame_width * (1-frame_edge)) - (frame_width * frame_edge)
+                game_x = game_x * (constants.WIDTH/ (frame_width *constants.FRAME_SCALE))
+                game_x = np.clip(game_x, self.pygame_rect.width // 2, constants.WIDTH - self.pygame_rect.width // 2) \
+                    + constants.LEFT_SCREEN_OFFSET + constants.HORIZ_PADDLE_OFFSET
+                self.speed = game_x - self.pygame_rect.centerx
+                self.pygame_rect.centerx = game_x
+                self.clampHoriz()
+    
+    def moveTopPlayer(self, right_paddle):
+        right_y = right_paddle.pygame_rect.centery - (constants.TOP_SCREEN_OFFSET + constants.TOP_PADDLE_OFFSET + constants.PADDLE_WIDTH // 2)
+        right_max_y = constants.HEIGHT - 2*constants.TOP_PADDLE_OFFSET - constants.PADDLE_WIDTH
+        top_max_x = constants.SCREEN_WIDTH - (constants.LEFT_SCREEN_OFFSET + 50 + constants.PADDLE_WIDTH // 2 - constants.PADDLE_HEIGHT // 2)
+        
+        self.pygame_rect.centerx = int((1 - right_y / right_max_y) * top_max_x)
+        self.clampHoriz()
+
+    def moveBotComp(self, movespeed, ball):
+        paddle_y = self.pygame_rect.bottom
+        ball_y_curr = ball.pygame_rect.top
+        # We only move the paddle when its going towards the AI and is on the right side of it
+        if ball_y_curr < paddle_y and ball.vy > 0:
+            # Calculate where the ball will be going
+            ball_traj_x = ((paddle_y - ball_y_curr) / ball.vy) * ball.vx \
+            + ball.pygame_rect.centerx
+
+            diff = ball_traj_x - self.pygame_rect.centerx
+
+            if abs(diff) > movespeed:
+                self.pygame_rect.centerx = (diff/abs(diff))*movespeed + self.pygame_rect.centerx
+                self.speed = (diff/abs(diff))*movespeed
+            else:
+                self.pygame_rect.centerx = ball_traj_x
+                self.speed = diff
+        
+        self.clampHoriz()
+                    
+    def clampVert(self):
+        if self.pygame_rect.top < constants.TOP_SCREEN_OFFSET + constants.TOP_PADDLE_OFFSET + constants.PADDLE_WIDTH // 2:
+            self.pygame_rect.top = constants.TOP_SCREEN_OFFSET + constants.TOP_PADDLE_OFFSET + constants.PADDLE_WIDTH // 2
+        if self.pygame_rect.bottom > constants.SCREEN_HEIGHT - (constants.BOTTOM_SCREEN_OFFSET + constants.TOP_PADDLE_OFFSET + constants.PADDLE_WIDTH //2):
+            self.pygame_rect.bottom = constants.SCREEN_HEIGHT - (constants.BOTTOM_SCREEN_OFFSET + constants.TOP_PADDLE_OFFSET + constants.PADDLE_WIDTH //2)
+    
+    def clampHoriz(self):
+        if self.pygame_rect.left < constants.LEFT_SCREEN_OFFSET + 50 + constants.PADDLE_WIDTH // 2:
+                self.pygame_rect.left = constants.LEFT_SCREEN_OFFSET + 50 + constants.PADDLE_WIDTH // 2
+        if self.pygame_rect.right > constants.SCREEN_WIDTH - (constants.LEFT_SCREEN_OFFSET + 50 + constants.PADDLE_WIDTH // 2):
+            self.pygame_rect.right = constants.SCREEN_WIDTH - (constants.LEFT_SCREEN_OFFSET + 50 + constants.PADDLE_WIDTH // 2)

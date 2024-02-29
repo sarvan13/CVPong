@@ -15,8 +15,8 @@ class ClassicGame(GameMode):
                                                constants.TOP_SCREEN_OFFSET + constants.HEIGHT // 2 - 50, 20, 100))
         self.left_paddle = Paddle(pygame.Rect(constants.LEFT_SCREEN_OFFSET + 50, constants.TOP_SCREEN_OFFSET + \
                                               constants.HEIGHT // 2 - 50, 20, 100))
-        self.ball = Ball(pygame.Rect(constants.LEFT_SCREEN_OFFSET + constants.WIDTH // 2 - 15, constants.TOP_SCREEN_OFFSET \
-                                      + constants.HEIGHT // 2 - 15, 30, 30), 0)
+        self.ball = Ball(pygame.Rect(constants.LEFT_SCREEN_OFFSET + constants.WIDTH // 2 - constants.BALL_RADIUS, constants.TOP_SCREEN_OFFSET \
+                                      + constants.HEIGHT // 2 - constants.BALL_RADIUS, 2*constants.BALL_RADIUS, 2*constants.BALL_RADIUS), 0)
         self.clock = pygame.time.Clock()
         self.graphics = Graphics(screen)
         self.font = pygame.font.Font(None, constants.DEFAULT_FONT_SIZE)
@@ -36,6 +36,7 @@ class ClassicGame(GameMode):
                           constants.SCREEN_HEIGHT - constants.BOTTOM_SCREEN_OFFSET //2 \
                             - constants.CAMERA_HEIGHT //2)
         self.game_over_sound = sounds.loadGameOverSound()
+        self.particles = []
 
     def runGame(self):
         return super().runGame()
@@ -64,8 +65,13 @@ class ClassicGame(GameMode):
         else:
             self.right_paddle.movePlayerKey(pygame.K_UP, pygame.K_DOWN)
 
-        self.ball.moveBall(self.left_paddle, self.right_paddle)
+        self.ball.moveBall(self.left_paddle, self.right_paddle, self.particles)
         self.left_paddle.moveComp(constants.COMP_SPEED, self.ball)
+        # Progress and kill particles
+        for particle in self.particles:
+            particle.move()
+        self.particles = [particle for particle in self.particles if particle.lifetime > 0]
+
     
     # This does CV analysis for the game state - use the hand to pause the frame by moving it to the other side
     # Also gets the frame to display 
@@ -110,6 +116,9 @@ class ClassicGame(GameMode):
         pygame.draw.rect(self.screen, constants.PINK, self.left_paddle.pygame_rect)
         pygame.draw.rect(self.screen, constants.PINK, self.right_paddle.pygame_rect)
         pygame.draw.ellipse(self.screen, constants.WHITE, self.ball.pygame_rect)
+
+        for particle in self.particles:
+            pygame.draw.circle(self.screen, (255,255,255, 100), (int(particle.position[0]), int(particle.position[1])), 3)
         
         # Display Score
         self.drawScore()
@@ -207,7 +216,6 @@ class ClassicGame(GameMode):
                     elif self.selected_input == 1:
                         self.returnMenu = True
                         self.running = False
-                        print("returning")
                     self.paused = False
                     self.gameOver = False
                 elif event.key == pygame.K_ESCAPE:
