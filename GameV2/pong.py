@@ -14,7 +14,7 @@ from graphics import Graphics
 pygame.init()
 
 # Create the game window
-screen = pygame.display.set_mode((constants.WIDTH, constants.HEIGHT))
+screen = pygame.display.set_mode((constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT))
 pygame.display.set_caption("Pong Game")
 
 # Menu Options
@@ -43,7 +43,7 @@ while gameState != constants.State.EXIT:
                 text = selected_font.render(option, True, constants.BLACK)
             else:
                 text = font.render(option, True, constants.BLACK)
-            screen.blit(text, (constants.WIDTH // 2 - text.get_width() // 2, constants.HEIGHT // 2 + i * (constants.DEFAULT_FONT_SIZE + 20)))
+            screen.blit(text, (constants.SCREEN_WIDTH // 2 - text.get_width() // 2, constants.SCREEN_HEIGHT // 2 + i * (constants.DEFAULT_FONT_SIZE + 20)))
 
         pygame.display.flip()
 

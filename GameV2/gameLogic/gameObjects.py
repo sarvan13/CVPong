@@ -3,6 +3,7 @@ import GameV2.constants as constants
 import cv2
 import mediapipe as mp
 import numpy as np
+import random
 from time import time
 
 class Paddle:
@@ -11,7 +12,6 @@ class Paddle:
         self.speed = 0
         self.time_last_hit = -1
     
-    # Draw
     def movePlayerCV(self, frame, mp_hands, hands, use_left=False):
         results = hands.process(frame)
         frame_height = frame.shape[0]
@@ -32,26 +32,73 @@ class Paddle:
                 game_y = game_y * (constants.HEIGHT/ (frame_height *constants.FRAME_SCALE))
                 game_y = np.clip(game_y, self.pygame_rect.height // 2, constants.HEIGHT - self.pygame_rect.height // 2)
                 self.speed = game_y - self.pygame_rect.centery
-                self.pygame_rect.centery = game_y
-
+                self.pygame_rect.centery = game_y + constants.TOP_SCREEN_OFFSET
                 # Draw a circle at the center of the hand
-                cv2.circle(frame, (cx, cy), 10, (0, 255, 0), -1)
+                cv2.circle(frame, (cx, cy), 10, constants.PINK, -1)
+
+                # If the right hand is on the left hand
+                # if not use_left and cx < frame.shape[1] // 2:
+
         
-        #cv2.imshow('Hand Tracking', frame)
+        cv2.rectangle(frame, (0, int(frame_height * frame_edge)), (frame.shape[1], int(frame_height * (1-frame_edge))), constants.PINK, 3)
+        pygame_frame = cv2.resize(frame, (constants.CAMERA_WIDTH, constants.CAMERA_HEIGHT))
+        pygame_frame = np.rot90(pygame_frame)
+        pygame_frame = pygame.surfarray.make_surface(pygame_frame)
+        return pygame_frame
+    
+    # This method should only be called on the right paddle and is used only in 2 player modes
+    # If I have time - combine this function with the other CV function - its doable but not priority
+    def moveRightLeftPaddleCV(self, frame, mp_hands, hands, left_paddle):
+        results = hands.process(frame)
+        frame_height = frame.shape[0]
+        frame_edge = (1 - constants.FRAME_SCALE) / 2
+
+        if results.multi_hand_landmarks:
+            for hand_landmarks in results.multi_hand_landmarks:
+                is_left = self.isLeftHand(mp_hands, hand_landmarks)
+                # Get the coordinates of the center of the hand
+                cx, cy = int(hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_MCP].x * frame.shape[1]), \
+                         int(hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_MCP].y * frame.shape[0])
+                
+                game_y = np.clip(cy, frame_height * frame_edge, frame_height * (1-frame_edge)) - (frame_height * frame_edge)
+                game_y = game_y * (constants.HEIGHT/ (frame_height *constants.FRAME_SCALE))
+                game_y = np.clip(game_y, self.pygame_rect.height // 2, constants.HEIGHT - self.pygame_rect.height // 2)
+                
+                if is_left:
+                    left_paddle.speed = game_y - self.pygame_rect.centery
+                    left_paddle.pygame_rect.centery = game_y + constants.TOP_SCREEN_OFFSET
+                else:
+                    self.speed = game_y - self.pygame_rect.centery
+                    self.pygame_rect.centery = game_y + constants.TOP_SCREEN_OFFSET
+                # Draw a circle at the center of the hand
+                cv2.circle(frame, (cx, cy), 10, constants.PINK, -1)
+        
+        cv2.rectangle(frame, (0, int(frame_height * frame_edge)), (frame.shape[1], int(frame_height * (1-frame_edge))), constants.PINK, 3)
+        pygame_frame = cv2.resize(frame, (constants.CAMERA_WIDTH, constants.CAMERA_HEIGHT))
+        pygame_frame = np.rot90(pygame_frame)
+        pygame_frame = pygame.surfarray.make_surface(pygame_frame)
+        return pygame_frame
+
 
     
     def movePlayerKey(self, key_up, key_down):
         keys = pygame.key.get_pressed()
         prevy = self.pygame_rect.y
-        if keys[key_up] and self.pygame_rect.top > 0:
+        if keys[key_up] and self.pygame_rect.top > constants.TOP_SCREEN_OFFSET:
             self.pygame_rect.y -= constants.PADDLE_SPEED
-        if keys[key_down] and self.pygame_rect.bottom < constants.HEIGHT:
+        if keys[key_down] and self.pygame_rect.bottom < constants.HEIGHT + constants.TOP_SCREEN_OFFSET:
             self.pygame_rect.y += constants.PADDLE_SPEED
         self.speed = self.pygame_rect.y - prevy
+
+        if self.pygame_rect.top < constants.TOP_SCREEN_OFFSET:
+                self.pygame_rect.top = constants.TOP_SCREEN_OFFSET
+        if self.pygame_rect.bottom > constants.TOP_SCREEN_OFFSET + constants.HEIGHT:
+            self.pygame_rect.bottom = constants.HEIGHT + constants.TOP_SCREEN_OFFSET
     
     def moveComp(self, movespeed, ball):
         paddle_x = self.pygame_rect.right
         ball_x_curr = ball.pygame_rect.left
+        # We only move the paddle when its going towards the AI and is on the right side of it
         if ball_x_curr > paddle_x and ball.vx < 0:
             # Calculate where the ball will be going
             ball_traj_y = ((paddle_x - ball_x_curr) / ball.vx) * ball.vy \
@@ -66,17 +113,17 @@ class Paddle:
                 self.pygame_rect.centery = ball_traj_y
                 self.speed = diff
             
-            if self.pygame_rect.top < 0:
-                self.pygame_rect.top = 0
-            if self.pygame_rect.bottom > constants.HEIGHT:
-                self.pygame_rect.bottom = constants.HEIGHT
+            if self.pygame_rect.top < constants.TOP_SCREEN_OFFSET:
+                self.pygame_rect.top = constants.TOP_SCREEN_OFFSET
+            if self.pygame_rect.bottom > constants.TOP_SCREEN_OFFSET + constants.HEIGHT:
+                self.pygame_rect.bottom = constants.HEIGHT + constants.TOP_SCREEN_OFFSET
 
     def isLeftHand(self, mp_hands, landmarks):
         if landmarks:
             thumb_tip_x = landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP].x
             pinky_tip_x = landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP].x
 
-            return thumb_tip_x > pinky_tip_x
+            return thumb_tip_x < pinky_tip_x
         return False
 
 class Ball:
@@ -97,20 +144,22 @@ class Ball:
         self.checkPaddleCollision(left_paddle)
         self.checkPaddleCollision(right_paddle)
 
-        if self.pygame_rect.top <= 0:
+        if self.pygame_rect.top <= constants.TOP_SCREEN_OFFSET:
             self.vy = abs(self.vy)
-        if self.pygame_rect.bottom >= constants.HEIGHT:
+        if self.pygame_rect.bottom >= constants.HEIGHT + constants.TOP_SCREEN_OFFSET:
             self.vy = -1 * abs(self.vy)
 
-        if self.pygame_rect.left <= 0:
+        if self.pygame_rect.left <= constants.LEFT_SCREEN_OFFSET:
             self.past_left += 1
-            self.pygame_rect.x = constants.WIDTH // 2 - self.pygame_rect.width // 2
+            self.pygame_rect.x = constants.LEFT_SCREEN_OFFSET + constants.WIDTH // 2 - self.pygame_rect.width // 2
+            self.pygame_rect.y = constants.TOP_SCREEN_OFFSET + constants.HEIGHT // 2 - self.pygame_rect.height // 2
             self.vx = constants.BALL_SPEED
             self.vy = constants.BALL_SPEED
 
-        if self.pygame_rect.right >= constants.WIDTH:
+        if self.pygame_rect.right >= constants.WIDTH + constants.LEFT_SCREEN_OFFSET:
             self.past_right += 1
-            self.pygame_rect.x = constants.WIDTH // 2 - self.pygame_rect.width // 2
+            self.pygame_rect.x =constants.LEFT_SCREEN_OFFSET + constants.WIDTH // 2 - self.pygame_rect.width // 2
+            self.pygame_rect.y = constants.TOP_SCREEN_OFFSET + constants.HEIGHT // 2 - self.pygame_rect.height // 2
             self.vx = -constants.BALL_SPEED
             self.vy = constants.BALL_SPEED
     
@@ -148,15 +197,6 @@ class Ball:
             new_y_speed = self.vy + paddle.speed
             new_x_speed = self.vx
             new_energy = new_y_speed**2 + new_x_speed**2
-            # if abs(new_y_speed) < abs(self.vy):
-            #     # paddle is going the other way and I want energy to never decrease ie:
-            #     # new_x_speed**2 + new_y_speed**2 = self.vy**2 + self.vx**2
-            #     new_x_speed = self.vx / abs(self.vx) * np.sqrt(curr_energy - new_y_speed**2)
-            #     self.vx = np.clip(new_x_speed, -abs(self.vx) - constants.MAX_SPEED_INC \
-            #                       , abs(self.vx) + constants.MAX_SPEED_INC)
-            
-            # self.vy = np.clip(new_y_speed, -abs(self.vy) - constants.MAX_SPEED_INC \
-            #                   , abs(self.vy) +  constants.MAX_SPEED_INC)
             if (new_energy > max_energy):
                 new_energy = max_energy
             elif (new_energy < curr_energy):
@@ -171,3 +211,22 @@ class Ball:
                     theta = theta / abs(theta) * ((np.pi / 2) + constants.MIN_ANGLE)
             self.vy = np.sqrt(new_energy) * np.sin(theta)
             self.vx = np.sqrt(new_energy) * np.cos(theta)
+
+class PowerUp:
+    def __init__(self, pygame_rect, type):
+        self.pygame_rect = pygame_rect
+        self.type = type
+    
+
+
+class Particle:
+    def __init__(self, position, speed):
+        self.position = list(position)
+        self.speed = list(speed)
+        self.lifetime = random.randint(10, 25)
+
+    def move(self):
+        self.position[0] += self.speed[0]
+        self.position[1] += self.speed[1]
+        self.lifetime -= 1
+
