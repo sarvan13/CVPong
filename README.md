@@ -57,9 +57,6 @@ First make sure you are inside the correct directory of the game you want to try
 
 That should do it. Enjoy the game!
 
-### Last Minute Note
-Apologies for the Readme update - I realize I forgot to change a divide by 0 error. Since I have already submitted I will not change the code. There is a very very very slight chance that you may get a divide by 0 error. I lack an if statement when I check the velocities sign `vy/ab(vy)`. Since the velocity is a float it is very unlikely to happen but if it does just relaunch or I can add the fix.
-
 ## Game Instructions
 In all game modes you can select whether to use motion capture or to use the keyboard on a menu screen before the game. Use your right hand to control the paddle unless the instructions below say otherwise. The game can be paused using escape or by moving your right hand over to the left third of the screen. Try to keep your hands upright so the game can tell the difference between left and right! There are basic physics that include the paddles velocity when the ball is hit which is explained further below.
 
