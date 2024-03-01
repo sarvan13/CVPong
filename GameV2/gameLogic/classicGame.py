@@ -28,6 +28,9 @@ class ClassicGame(GameMode):
                           constants.SCREEN_HEIGHT - constants.BOTTOM_SCREEN_OFFSET //2 \
                             - constants.CAMERA_HEIGHT //2)
         self.game_over_sound = sounds.loadGameOverSound()
+        self.win_sound = sounds.loadWinSound()
+        self.score_sound = sounds.loadScoreSound()
+        self.concede_sound = sounds.loadConcedeSound()
         self.particles = []
         self.menu = GameMenus(screen)
 
@@ -92,8 +95,12 @@ class ClassicGame(GameMode):
             self.camera_frame = pygame_frame
     
     def updateScore(self):
-        self.right_score = self.ball.past_left
-        self.left_score = self.ball.past_right
+        if self.ball.past_left > self.right_score:
+            self.right_score = self.ball.past_left
+            self.score_sound.play()
+        elif self.ball.past_right > self.left_score:
+            self.left_score = self.ball.past_right
+            self.concede_sound.play()
 
     def drawFrame(self):
          # Draw Frame
@@ -134,7 +141,7 @@ class ClassicGame(GameMode):
             self.paused = True
             self.gameOver = True
             self.endText = "You Win!"
-            self.game_over_sound.play()
+            self.win_sound.play()
             self.resetGame()
         elif (self.left_score == constants.WIN_SCORE):
             self.paused = True

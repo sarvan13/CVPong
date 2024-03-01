@@ -34,17 +34,27 @@ class TwoPlayerGame(ClassicGame):
         for particle in self.particles:
             particle.move()
         self.particles = [particle for particle in self.particles if particle.lifetime > 0]
+
+    def updateScore(self):
+        if self.ball.past_left > self.right_score:
+            self.right_score = self.ball.past_left
+            self.score_sound.play()
+        elif self.ball.past_right > self.left_score:
+            self.left_score = self.ball.past_right
+            self.score_sound.play()
         
     def checkGameOver(self):
         if (self.right_score == constants.WIN_SCORE):
             self.paused = True
             self.gameOver = True
             self.endText = "Right Player Wins!"
+            self.win_sound.play()
             self.resetGame()
         elif (self.left_score == constants.WIN_SCORE):
             self.paused = True
             self.gameOver = True
             self.endText = "Left Player Wins!"
+            self.win_sound.play()
             self.resetGame()
 
     

@@ -112,7 +112,7 @@ class Ball:
     def __init__(self, pygame_rect, spin):
         self.pygame_rect = pygame_rect
         self.vx = constants.BALL_SPEED
-        self.vy = constants.BALL_SPEED
+        self.vy = 0.5*constants.BALL_SPEED
         self.spin = spin
         self.past_left = 0
         self.past_right = 0
@@ -138,14 +138,16 @@ class Ball:
             self.pygame_rect.x = constants.LEFT_SCREEN_OFFSET + constants.WIDTH // 2 - self.pygame_rect.width // 2
             self.pygame_rect.y = constants.TOP_SCREEN_OFFSET + constants.HEIGHT // 2 - self.pygame_rect.height // 2
             self.vx = constants.BALL_SPEED
-            self.vy = constants.BALL_SPEED
+            self.vy = (self.pygame_rect.y - right_paddle.pygame_rect.y) / (self.pygame_rect.x - right_paddle.pygame_rect.x) \
+                        * self.vx
 
         if self.pygame_rect.right >= constants.WIDTH + constants.LEFT_SCREEN_OFFSET:
             self.past_right += 1
             self.pygame_rect.x =constants.LEFT_SCREEN_OFFSET + constants.WIDTH // 2 - self.pygame_rect.width // 2
             self.pygame_rect.y = constants.TOP_SCREEN_OFFSET + constants.HEIGHT // 2 - self.pygame_rect.height // 2
             self.vx = -constants.BALL_SPEED
-            self.vy = constants.BALL_SPEED
+            self.vy = (self.pygame_rect.y - left_paddle.pygame_rect.y) / (self.pygame_rect.x - left_paddle.pygame_rect.x) \
+                        * self.vx
     
     # Check if there are any collisions between the ball and a given paddle
     def checkPaddleCollision(self, paddle, particles):
