@@ -6,7 +6,14 @@ This is my attempt at creating the classic game of Pong but with the added twist
   <img src="https://sarvangill.ca/docs/PONG-game.png" width="500" /> 
 </p>
 
-The background images of the game were both generated using AI and took off the internet, the fonts I also found online for free. I actually decided to remove the background in the game so these are actually old images of the basic game. The final game has 5 game modes! 
+The background images of the game were both generated using AI and took off the internet, the fonts I also found online for free. I actually decided to remove the background in the game so these are actually old images of the basic game. The final game has 4.5 game modes! 
+
+### Demo Video
+```CVPong/video-demo.mkv```
+
+**Note:** In the video I say that the last game mode is "spaghetti code", I am not referring to the code in general here but I am specifically talking about the Double Trouble mode which is unfinished as I described. There are two copies of the game and I would like to submit the one without "Double Trouble" as my official subission due to it having much better code quality. This is explained better in the next section. 
+
+**Note2:** In the video the second grey power up appears to do nothing - this is not a bug, it is the intended behaviour. You can see that as I get the power up the ball contacts the other paddle. The power up slows the ball down for a short time OR until it hits a paddle/wall. The second condition is what happened on the second grey power up!
 
 ## Running the game
 
