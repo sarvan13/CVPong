@@ -57,6 +57,9 @@ First make sure you are inside the correct directory of the game you want to try
 
 That should do it. Enjoy the game!
 
+### Last Minute Note
+Apologies for the Readme update - I realize I forgot to change a divide by 0 error. Since I have already submitted I will not change the code. There is a very very very slight chance that you may get a divide by 0 error. I lack an if statement when I check the velocities sign `vy/ab(vy)`. Since the velocity is a float it is very unlikely to happen but if it does just relaunch or I can add the fix.
+
 ## Game Instructions
 In all game modes you can select whether to use motion capture or to use the keyboard on a menu screen before the game. Use your right hand to control the paddle unless the instructions below say otherwise. The game can be paused using escape or by moving your right hand over to the left third of the screen. Try to keep your hands upright so the game can tell the difference between left and right! There are basic physics that include the paddles velocity when the ball is hit which is explained further below.
 
@@ -82,10 +85,6 @@ If you are using hand detection, then in order to grab the ball you must show th
 ### Double Trouble
 **Only in the `Beta/GameV2` version**
 Here all 4 walls have paddles. Your left hand controls the top paddle and your right hand controls the right paddle. Keep your hands upright as rotating them will confuse the game as to which hand is which if they aren't straight. On the keyboard you control both paddles at once with the up and down arrows, that is the top and right paddle lose their individuality and now only work as one.
-
-
-## Game Notes
-Unfortunately I was not able to keep the Mac I borrowed for the entire week so I wasn't able to test some things on other platforms. One thing that I think could be impacted by this is the closed and open hand detection. I have a feeling that the resolution of the camera will impact whether my threshold I have set here. The threshold is quite robust on my 2018 Surface Book but you might need to move your hand slightly farther away from the camera for this if your resolution is higher than mine.
 
 ## Physics
 ### Background (Feel free to skip)
