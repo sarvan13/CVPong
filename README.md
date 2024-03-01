@@ -6,9 +6,24 @@ This is my attempt at creating the classic game of Pong but with the added twist
   <img src="https://sarvangill.ca/docs/PONG-game.png" width="500" /> 
 </p>
 
-The background images of the game were both generated using AI and ripped off the internet, the fonts I also found online for free.
+The background images of the game were both generated using AI and took off the internet, the fonts I also found online for free. I actually decided to remove the background in the game so these are actually old images of the basic game. The final game has 4.5 game modes! 
+
+### Demo Video
+```CVPong/video-demo.mkv```
+
+**Note:** In the video I say that the last game mode is "spaghetti code", I am not referring to the code in general here but I am specifically talking about the Double Trouble mode which is unfinished as I described. There are two copies of the game and I would like to submit the one without "Double Trouble" as my official subission due to it having much better code quality. This is explained better in the next section. 
+
+**Note2:** In the video the second grey power up appears to do nothing - this is not a bug, it is the intended behaviour. You can see that as I get the power up the ball contacts the other paddle. The power up slows the ball down for a short time OR until it hits a paddle/wall. The second condition is what happened on the second grey power up!
 
 ## Running the game
+
+### Getting the code
+Before I get into running the game - let me explain what to clone from the repo. The main branch is this one you are looking at `beta`. Please clone this branch.
+
+This branch actually contains 2 copies of the game. The main game lives within `CVPong/GameV2`. This includes the first 4 game modes. It *DOES NOT* contain the last game mode "Double Trouble". The game with "Double Trouble" lives within `CVPong/Beta/GameV2`. I have labelled the game with the "Double Trouble" mode a beta version, not because the game mode doesnt work (it does) but because I made this game mode fully knowing that it would expose all the flaws in my code and lead to some hacky development. I do see value in acknowledging areas of improvement and instead of just telling you where I could improve - I present this game mode and the super uninspiring code changes that I had to make to get it working. So if you are judging my code quality please look in `CVPong/GameV2` and not `CVPong/Beta/GameV2`. 
+
+**Pleas use the game found in `CVPong/GameV2` for evaluation purposes**
+
 ### Dependencies
 Before we run the game we need to make sure we have the correct tools installed. The game makes use of three major libraries that is pygame (game development), openCV (camera input), and media pipe (hand detection).
 
@@ -32,9 +47,44 @@ Now I suspect downgrading to `Python-3.9` is not necessary as my Windows machine
 
 ### Run the game
 
-Now that the dependencies are installed we just need to run the game - **no GOOD game to run yet lol**
+Now that the dependencies are installed we just need to run the game - and to do that is quite simple.
 
-``` python <insert-game-name> ```
+First make sure you are inside the correct directory of the game you want to try so either `cd /install/path/CVPong/GameV2` or `cd /install/path/CVPong/Beta/GameV2`. Once inside the directory simply run:
+
+``` python pong.y ```
+
+(this might be `python3` or `python3.9` depending on your environemnt)
+
+That should do it. Enjoy the game!
+
+### Last Minute Note
+Apologies for the Readme update - I realize I forgot to change a divide by 0 error. Since I have already submitted I will not change the code. There is a very very very slight chance that you may get a divide by 0 error. I lack an if statement when I check the velocities sign `vy/ab(vy)`. Since the velocity is a float it is very unlikely to happen but if it does just relaunch or I can add the fix.
+
+## Game Instructions
+In all game modes you can select whether to use motion capture or to use the keyboard on a menu screen before the game. Use your right hand to control the paddle unless the instructions below say otherwise. The game can be paused using escape or by moving your right hand over to the left third of the screen. Try to keep your hands upright so the game can tell the difference between left and right! There are basic physics that include the paddles velocity when the ball is hit which is explained further below.
+
+### Classic
+Your classic game of pong playing against a computer. You can use your right hand to control the paddle or the arrow keys - there is a menu screen to select. Game is first to 7 points.
+
+### Infinite
+This is game mode is what was described by the task in its most basic form. Control the paddle with your right hand and play pong against the wall. Game ends when you miss the ball. Game of trying to get a high score.
+
+### Two Player
+Remove the computer from the classic game mode and add another hand and you have the two player mode. Right hand controls right paddle, left hand controls left paddle. Game is first to 7 points.
+
+### Arcade
+This is the classic game modes but with power ups! The game will randomly spit out little balls that are power ups if your paddle touches it.
+- `Grey:Slow` - slows the ball for a brief period of time (or until the ball contacts a wall or paddle) before returning to its original speed
+- `Ice:Freeze` - freezes the computers paddle for a brief period of time
+- `Green:Grab` - allows the user to grab the ball and then release it at a new angle and the original speed
+#### Grab Power Up Control
+There is a sweeping line that indicates the balls trajectory on release when it is stuck on your paddle. To release the ball on the keyboard all you have to do is click the space bar.
+
+If you are using hand detection, then in order to grab the ball you must show the screen a closed fist - your paddle will go green when it detects that you have the power up and that your fist is closed. To release the ball simply open your hand!
+
+### Double Trouble
+**Only in the `Beta/GameV2` version**
+Here all 4 walls have paddles. Your left hand controls the top paddle and your right hand controls the right paddle. Keep your hands upright as rotating them will confuse the game as to which hand is which if they aren't straight. On the keyboard you control both paddles at once with the up and down arrows, that is the top and right paddle lose their individuality and now only work as one.
 
 ## Physics
 ### Background (Feel free to skip)
