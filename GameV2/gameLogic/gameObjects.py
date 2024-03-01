@@ -70,6 +70,7 @@ class Paddle:
             self.pygame_rect.y += constants.PADDLE_SPEED
         self.speed = self.pygame_rect.y - prevy
 
+        # Check bounds and correct
         if self.pygame_rect.top < constants.TOP_SCREEN_OFFSET:
                 self.pygame_rect.top = constants.TOP_SCREEN_OFFSET
         if self.pygame_rect.bottom > constants.TOP_SCREEN_OFFSET + constants.HEIGHT:
@@ -94,6 +95,7 @@ class Paddle:
                 self.pygame_rect.centery = ball_traj_y
                 self.speed = diff
             
+            # Check bounds and correct
             if self.pygame_rect.top < constants.TOP_SCREEN_OFFSET:
                 self.pygame_rect.top = constants.TOP_SCREEN_OFFSET
             if self.pygame_rect.bottom > constants.TOP_SCREEN_OFFSET + constants.HEIGHT:
@@ -133,6 +135,8 @@ class Ball:
         if self.pygame_rect.bottom >= constants.HEIGHT + constants.TOP_SCREEN_OFFSET:
             self.vy = -1 * abs(self.vy)
 
+        # Check bounds and if past the bounds move back to center, add a count of which side for scoring,
+        # and then redirect it to the opposite paddle for the next point
         if self.pygame_rect.left <= constants.LEFT_SCREEN_OFFSET:
             self.past_left += 1
             self.pygame_rect.x = constants.LEFT_SCREEN_OFFSET + constants.WIDTH // 2 - self.pygame_rect.width // 2
@@ -155,7 +159,7 @@ class Ball:
         # to unwanted edge case behaviour so we put the paddle on a collision cool down of 200 ms
         if self.pygame_rect.colliderect(paddle.pygame_rect) and (self.time - paddle.time_last_hit) > 0.2:
             paddle.time_last_hit = self.time
-            particle_sourcex = paddle.pygame_rect.left # assume it collided with right paddle
+            particle_sourcex = paddle.pygame_rect.left # assume it collided with right paddle and correct after
             particle_sourcey = self.pygame_rect.centery
             self.pong_sound.play()
             # This means the ball is either on the corner or bottom of the paddle
@@ -183,7 +187,7 @@ class Ball:
                 self.vx = (self.vx / abs(self.vx))*constants.SPEED_MULT + self.vx
                 self.vy = (self.vy / abs(self.vy)*constants.SPEED_MULT) + self.vy
             
-            # Now we add in the speed from the paddle
+            # Now we add in the speed from the paddle - this is the PHYSICS
             curr_energy = self.vy**2 + self.vx**2
             max_energy = curr_energy + self.max_speed_inc**2
             new_y_speed = self.vy + paddle.speed
@@ -225,6 +229,7 @@ class Particle:
         self.position[1] += self.speed[1]
         self.lifetime -= 1
 
+# Describes the physical container of the power ups, ie how the power up is shaped, size, lifetime, consumption
 class PowerUp:
     def __init__(self, dest_x, dest_y):
         self.pygame_rect = pygame.Rect(constants.LEFT_SCREEN_OFFSET + constants.WIDTH // 2 - constants.POWER_UP_RAD, \
@@ -254,6 +259,8 @@ class PowerUp:
         self.pygame_rect.y >= constants.SCREEN_HEIGHT - constants.BOTTOM_SCREEN_OFFSET:
             self.destroy = True
     
+    # detects if the power up hits a paddle and if it does it returns the type of power up 
+    # that the paddle consumed
     def detectCollision(self, paddle):
         if self.pygame_rect.colliderect(paddle.pygame_rect):
             self.destroy = True

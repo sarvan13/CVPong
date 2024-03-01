@@ -35,7 +35,7 @@ class ArcadeGame(ClassicGame):
             self.hand_open = self.isHandOpen(results)
         else: # Keyboard as input
             self.right_paddle.movePlayerKey(pygame.K_UP, pygame.K_DOWN)
-        
+        # Handle the game logic depending on the power up state
         if self.power_up_state == constants.PowerUpType.SLOW:
             self.handleSlow()
         elif self.power_up_state == constants.PowerUpType.FREEZE:
@@ -77,6 +77,7 @@ class ArcadeGame(ClassicGame):
     
     def drawFrame(self):
         super().drawFrame()
+        # Show the colours for the powerups!
         if self.power_up:
             pygame.draw.ellipse(self.screen, constants.PowerUpColour[self.power_up.type], self.power_up.pygame_rect)
         if self.power_up_state == constants.PowerUpType.SLOW:
@@ -92,6 +93,7 @@ class ArcadeGame(ClassicGame):
             pygame.draw.rect(self.screen, constants.SLIME_GREEN, self.right_paddle.pygame_rect)
     
     def updateScore(self):
+        # Reset the power up state on a point scored
         if self.ball.past_left > self.right_score:
             self.right_score = self.ball.past_left
             self.power_up_state == constants.PowerUpType.NONE
@@ -101,6 +103,8 @@ class ArcadeGame(ClassicGame):
             self.power_up_state == constants.PowerUpType.NONE
             self.concede_sound.play()
     
+    # Handles the Slow power up state. Slows the ball for a brief period or until the ball makes
+    # contact with another paddle or wall at which point it returns to its original velocity.
     def handleSlow(self):
         if pygame.time.get_ticks() - self.pup_start_time < constants.SLOW_TIME:
             # Slow the ball down and then move it
@@ -126,6 +130,7 @@ class ArcadeGame(ClassicGame):
             self.left_paddle.moveComp(constants.COMP_SPEED, self.ball)
             self.last_pup_time = pygame.time.get_ticks()
     
+    # Handles the Freeze power up state. Freezes the computers paddle for a short period.
     def handleFreeze(self):
         if pygame.time.get_ticks() - self.pup_start_time < constants.FREEZE_TIME:
             # Just dont move the computer 
@@ -137,6 +142,9 @@ class ArcadeGame(ClassicGame):
             self.power_up_state = constants.PowerUpType.NONE
             self.last_pup_time = pygame.time.get_ticks()
     
+    # Handles the Grab power up state. When a user hits a green power up they can grab the ball 
+    # and release it at an angle that is shown by a sweeping line. The user can do this by either
+    # pressing space or closing and opening their hand (depends on specified input method)
     def handleGrab(self, hand_open):
         if self.ball.pygame_rect.colliderect(self.right_paddle.pygame_rect):
             # We have to wait until the ball collides with the paddle to start the timer here
@@ -199,6 +207,8 @@ class ArcadeGame(ClassicGame):
             self.ball.moveBall(self.left_paddle, self.right_paddle, self.particles)
             self.left_paddle.moveComp(constants.COMP_SPEED, self.ball)
 
+    # Releases a stuck ball from a paddle and sends it off with the previous speed but along a new
+    # specified angle. Resets the power up state.
     def releaseBall(self):
         ball_speed = np.sqrt(self.ball_prev_velocity[0]**2 + self.ball_prev_velocity[1]**2)
         self.ball.vx = -1 * ball_speed * np.sin(np.radians(self.stuck_phi))
@@ -210,6 +220,7 @@ class ArcadeGame(ClassicGame):
         self.stuck = False
         self.last_pup_time = pygame.time.get_ticks()
 
+    # Checks if users hand is open and returns a bool
     def isHandOpen(self, results):
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
