@@ -49,7 +49,7 @@ First make sure you are inside the correct directory of the game you want to try
 That should do it. Enjoy the game!
 
 ## Game Instructions
-In all game modes you can select whether to use motion capture or to use the keyboard on a menu screen before the game. Use your right hand to control the paddle unless the instructions below say otherwise. There are basic physics that include the paddles velocity when the ball is hit which is explained further below.
+In all game modes you can select whether to use motion capture or to use the keyboard on a menu screen before the game. Use your right hand to control the paddle unless the instructions below say otherwise. The game can be paused using escape or by moving your right hand over to the left third of the screen. Try to keep your hands upright so the game can tell the difference between left and right! There are basic physics that include the paddles velocity when the ball is hit which is explained further below.
 
 ### Classic
 Your classic game of pong playing against a computer. You can use your right hand to control the paddle or the arrow keys - there is a menu screen to select. Game is first to 7 points.
