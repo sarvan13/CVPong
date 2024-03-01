@@ -205,7 +205,6 @@ class Ball:
                     theta = theta / abs(theta) * ((np.pi / 2) + constants.MIN_ANGLE)
             self.vy = np.sqrt(new_energy) * np.sin(theta)
             self.vx = np.sqrt(new_energy) * np.cos(theta)
-            print(np.sqrt(new_energy))
 
             # Finally add particles at collision source
             if (self.pygame_rect.right > paddle.pygame_rect.right):
@@ -213,11 +212,6 @@ class Ball:
 
             particles.extend([Particle((particle_sourcex, particle_sourcey), \
                                        [random.uniform(-3, 3), random.uniform(-3, 3)]) for _ in range(constants.NUM_PARTICLES)])
-
-class PowerUp:
-    def __init__(self, pygame_rect, type):
-        self.pygame_rect = pygame_rect
-        self.type = type
     
 # Simple class used for particle effects upon ball impacting paddles
 class Particle:
@@ -231,3 +225,40 @@ class Particle:
         self.position[1] += self.speed[1]
         self.lifetime -= 1
 
+class PowerUp:
+    def __init__(self, dest_x, dest_y):
+        self.pygame_rect = pygame.Rect(constants.LEFT_SCREEN_OFFSET + constants.WIDTH // 2 - constants.POWER_UP_RAD, \
+                                         constants.TOP_SCREEN_OFFSET  + constants.HEIGHT // 2 - constants.POWER_UP_RAD, \
+                                            2*constants.POWER_UP_RAD, 2*constants.POWER_UP_RAD)
+        self.type = constants.PowerUpType(random.randint(1,3))
+        self.dest_x = dest_x
+        self.dest_y = dest_y
+        self.speed = constants.POWER_UP_SPEED
+        self.destroy = False
+
+        diff_x = self.dest_x - self.pygame_rect.x
+        diff_y = self.dest_y - self.pygame_rect.y
+        theta = np.arctan2(diff_y, diff_x)
+        self.vy = self.speed * np.sin(theta)
+        self.vx = self.speed * np.cos(theta)
+    
+    def move(self):
+        self.pygame_rect.x += self.vx
+        self.pygame_rect.y += self.vy
+
+        if self.pygame_rect.x <= constants.LEFT_SCREEN_OFFSET or \
+            self.pygame_rect.x >= constants.LEFT_SCREEN_OFFSET + constants.WIDTH:
+            self.destroy = True
+
+        if self.pygame_rect.y <= constants.TOP_SCREEN_OFFSET or \
+        self.pygame_rect.y >= constants.SCREEN_HEIGHT - constants.BOTTOM_SCREEN_OFFSET:
+            self.destroy = True
+    
+    def detectCollision(self, paddle):
+        if self.pygame_rect.colliderect(paddle.pygame_rect):
+            self.destroy = True
+            return self.type
+        else:
+            return constants.PowerUpType.NONE
+
+        
