@@ -189,6 +189,8 @@ class Ball:
             new_y_speed = self.vy + paddle.speed
             new_x_speed = self.vx
             new_energy = new_y_speed**2 + new_x_speed**2
+            if (max_energy > constants.MAX_ENERGY):
+                max_energy = constants.MAX_ENERGY
             if (new_energy > max_energy):
                 new_energy = max_energy
             elif (new_energy < curr_energy):
@@ -203,6 +205,7 @@ class Ball:
                     theta = theta / abs(theta) * ((np.pi / 2) + constants.MIN_ANGLE)
             self.vy = np.sqrt(new_energy) * np.sin(theta)
             self.vx = np.sqrt(new_energy) * np.cos(theta)
+            print(np.sqrt(new_energy))
 
             # Finally add particles at collision source
             if (self.pygame_rect.right > paddle.pygame_rect.right):

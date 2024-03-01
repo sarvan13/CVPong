@@ -154,7 +154,7 @@ class ClassicGame(GameMode):
         self.left_score = 0
         self.right_score = 0
         self.ball.vx = constants.BALL_SPEED
-        self.ball.vy = constants.BALL_SPEED
+        self.ball.vy = 0.5*constants.BALL_SPEED
         self.ball.pygame_rect.x = constants.LEFT_SCREEN_OFFSET + constants.WIDTH // 2 - self.ball.pygame_rect.width // 2
         self.ball.pygame_rect.y = constants.LEFT_SCREEN_OFFSET + constants.HEIGHT // 2 - self.ball.pygame_rect.height // 2
         self.left_paddle.pygame_rect.y = constants.TOP_SCREEN_OFFSET + constants.HEIGHT // 2 \
