@@ -13,6 +13,7 @@ class Paddle:
         self.speed = 0
         self.time_last_hit = -1
     
+    # Moves a player controlled paddle using computer vision detecting hand position
     def movePlayerCV(self, frame, results, mp_hands, use_left=False):
         frame_height = frame.shape[0]
         frame_edge = (1 - constants.FRAME_SCALE) / 2
@@ -59,7 +60,7 @@ class Paddle:
                     self.speed = game_y - self.pygame_rect.centery
                     self.pygame_rect.centery = game_y
 
-
+    # Moves a player controlled paddle using the keyboard and specified keys for up and down
     def movePlayerKey(self, key_up, key_down):
         keys = pygame.key.get_pressed()
         prevy = self.pygame_rect.y
@@ -74,6 +75,7 @@ class Paddle:
         if self.pygame_rect.bottom > constants.TOP_SCREEN_OFFSET + constants.HEIGHT:
             self.pygame_rect.bottom = constants.HEIGHT + constants.TOP_SCREEN_OFFSET
     
+    # Moves a computer controlled paddle vertically based on ball trajectory
     def moveComp(self, movespeed, ball):
         paddle_x = self.pygame_rect.right
         ball_x_curr = ball.pygame_rect.left
@@ -97,6 +99,7 @@ class Paddle:
             if self.pygame_rect.bottom > constants.TOP_SCREEN_OFFSET + constants.HEIGHT:
                 self.pygame_rect.bottom = constants.HEIGHT + constants.TOP_SCREEN_OFFSET
 
+    # Checks if the hand is a left hand 
     def isLeftHand(self, mp_hands, landmarks):
         if landmarks:
             thumb_tip_x = landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP].x
@@ -116,6 +119,7 @@ class Ball:
         self.time = time()
         self.pong_sound = sounds.loadPongSound()
 
+    # Progresses the ball one frame
     def moveBall(self, left_paddle, right_paddle, particles):
         self.time = time()
         self.pygame_rect.x += self.vx
@@ -143,6 +147,7 @@ class Ball:
             self.vx = -constants.BALL_SPEED
             self.vy = constants.BALL_SPEED
     
+    # Check if there are any collisions between the ball and a given paddle
     def checkPaddleCollision(self, paddle, particles):
         # We dont want to keep checking the same paddle if we already collided with it otherwise it leads
         # to unwanted edge case behaviour so we put the paddle on a collision cool down of 200 ms
@@ -209,8 +214,7 @@ class PowerUp:
         self.pygame_rect = pygame_rect
         self.type = type
     
-
-
+# Simple class used for particle effects upon ball impacting paddles
 class Particle:
     def __init__(self, position, speed):
         self.position = list(position)

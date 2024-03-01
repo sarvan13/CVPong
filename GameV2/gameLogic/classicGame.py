@@ -1,6 +1,6 @@
 from GameV2.gameLogic.gameMode import GameMode
 from GameV2.gameLogic.gameObjects import Paddle, Ball
-from GameV2.graphics import Graphics
+from GameV2.gameLogic.gameMenus import GameMenus
 import GameV2.sounds.sounds as sounds
 import GameV2.constants as constants
 import pygame
@@ -11,21 +11,13 @@ import numpy as np
 class ClassicGame(GameMode):
     def __init__(self, screen, cap, mp_hands, hands):
         super().__init__(screen, cap, mp_hands, hands)
+        self.clock = pygame.time.Clock()
         self.right_paddle = Paddle(pygame.Rect(constants.LEFT_SCREEN_OFFSET + constants.WIDTH - 70, \
                                                constants.TOP_SCREEN_OFFSET + constants.HEIGHT // 2 - 50, 20, 100))
         self.left_paddle = Paddle(pygame.Rect(constants.LEFT_SCREEN_OFFSET + 50, constants.TOP_SCREEN_OFFSET + \
                                               constants.HEIGHT // 2 - 50, 20, 100))
         self.ball = Ball(pygame.Rect(constants.LEFT_SCREEN_OFFSET + constants.WIDTH // 2 - 15, constants.TOP_SCREEN_OFFSET \
                                       + constants.HEIGHT // 2 - 15, 30, 30), 0)
-        self.clock = pygame.time.Clock()
-        self.graphics = Graphics(screen)
-        self.font = pygame.font.Font(None, constants.DEFAULT_FONT_SIZE)
-        self.font_bayshore_selected = pygame.font.Font(None, constants.SELECTED_FONT_SIZE)
-        self.title_font = pygame.font.Font(None, constants.TITLE_FONT_SIZE)
-        self.input_text = ["Motion Capture", "Keyboard"]
-        self.selected_input = 0
-        self.right_score = 0
-        self.left_score = 0
         self.border_surface = pygame.Surface((constants.WIDTH + 2*constants.BORDER_THICKNESS,\
                                                constants.HEIGHT + 2*constants.BORDER_THICKNESS), pygame.SRCALPHA)
         self.border_surface.fill((0,0,0,0))
@@ -37,6 +29,7 @@ class ClassicGame(GameMode):
                             - constants.CAMERA_HEIGHT //2)
         self.game_over_sound = sounds.loadGameOverSound()
         self.particles = []
+        self.menu = GameMenus(screen)
 
     def runGame(self):
         return super().runGame()
@@ -48,10 +41,10 @@ class ClassicGame(GameMode):
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.paused = True
-                    self.selected_input = 0
+                    self.menu.selected_input = 0
             
     def calculateFrame(self):
-        if self.useCV:
+        if self.useCV: # Computer Vision as input
             ret, frame = self.cap.read()
             if not ret:
                 print("Failed to grab frame")
@@ -62,7 +55,7 @@ class ClassicGame(GameMode):
             self.right_paddle.movePlayerCV(rgb_frame, results, self.mp_hands)
             self.analyzeCVFrame(results, rgb_frame)
 
-        else:
+        else: # Keyboard as input
             self.right_paddle.movePlayerKey(pygame.K_UP, pygame.K_DOWN)
 
         self.ball.moveBall(self.left_paddle, self.right_paddle, self.particles)
@@ -125,7 +118,7 @@ class ClassicGame(GameMode):
 
     
     def drawScore(self):
-        score_display = self.font.render(f"{self.left_score} - {self.right_score}", True, constants.WHITE)
+        score_display = self.menu.font.render(f"{self.left_score} - {self.right_score}", True, constants.WHITE)
         self.screen.blit(score_display, (constants.LEFT_SCREEN_OFFSET + constants.WIDTH // 2 \
                                           - score_display.get_width() // 2, constants.TOP_SCREEN_OFFSET + 20))
 
@@ -164,102 +157,6 @@ class ClassicGame(GameMode):
         self.ball.past_left = 0
         self.ball.past_right = 0
     
-    def getInput(self):
-        #self.screen.fill(constants.WHITE)
-        self.graphics.drawBackgroundImage(self.screen, self.graphics.title_background_image)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.running = False
-                self.useCV = 0
-                self.fadeIn = False
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_DOWN:
-                    self.selected_input = (self.selected_input + 1) % len(self.input_text)
-                elif event.key == pygame.K_UP:
-                    self.selected_input = (self.selected_input - 1) % len(self.input_text)
-                elif event.key == pygame.K_RETURN:
-                    self.useCV =  not self.selected_input
-            
-        text = self.graphics.font_thor_title.render("Select Control Option", True, constants.WHITE)
-        self.screen.blit(text, (constants.SCREEN_WIDTH // 2 - text.get_width() // 2, 100))
-
-        if self.selected_input == 0:
-            text = self.graphics.font_bayshore_selected.render(self.input_text[0], True, constants.BLACK)
-            self.screen.blit(text, (constants.SCREEN_WIDTH // 2 - text.get_width() // 2, 176))
-            text = self.graphics.font_bayshore.render(self.input_text[1], True, constants.BLACK)
-            self.screen.blit(text, (constants.SCREEN_WIDTH // 2 - text.get_width() // 2, 176 + constants.SELECTED_FONT_SIZE \
-                                    + constants.BAYSHORE_ADJ + 10))
-        else:
-            text = self.graphics.font_bayshore.render(self.input_text[0], True, constants.BLACK)
-            self.screen.blit(text, (constants.SCREEN_WIDTH // 2 - text.get_width() // 2, 176))
-            text = self.graphics.font_bayshore_selected.render(self.input_text[1], True, constants.BLACK)
-            self.screen.blit(text, (constants.SCREEN_WIDTH // 2 - text.get_width() // 2, 176 + constants.DEFAULT_FONT_SIZE \
-                                    + constants.BAYSHORE_ADJ + 10))
-        
-        pygame.display.flip()
-
-    def pauseScreen(self):
-        self.graphics.drawBackgroundImage(self.screen, self.graphics.title_background_image)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.running = False
-                self.paused = False
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_DOWN:
-                    self.selected_input = (self.selected_input + 1) % 3
-                elif event.key == pygame.K_UP:
-                    self.selected_input = (self.selected_input - 1) % 3
-                elif event.key == pygame.K_RETURN:
-                    if self.selected_input == 2:
-                        self.running = False
-                    elif self.selected_input == 1:
-                        self.returnMenu = True
-                        self.running = False
-                        print("returning")
-                    self.paused = False
-                    self.gameOver = False
-                elif event.key == pygame.K_ESCAPE:
-                    self.paused = False
-                    self.gameOver = False
-
-        to_game_text = "Return to Game"
-        if self.gameOver:
-            to_game_text = "Play Again"
-            text = self.graphics.font_thor_title.render("GAME OVER", True, constants.BLACK)
-            self.screen.blit(text, (constants.SCREEN_WIDTH // 2 - text.get_width() // 2, 100))
-            text = self.graphics.font_thor.render(self.endText, True, constants.BLACK)
-            self.screen.blit(text, (constants.SCREEN_WIDTH // 2 - text.get_width() // 2, 175))
-        if self.selected_input == 0:
-            text = self.graphics.font_bayshore_selected.render(to_game_text, True, constants.WHITE)
-            self.screen.blit(text, (constants.SCREEN_WIDTH // 2 - text.get_width() // 2, constants.HEIGHT // 2 \
-                                    - (constants.DEFAULT_FONT_SIZE + constants.BAYSHORE_ADJ + 10)))
-            text = self.graphics.font_bayshore.render("Return to Menu", True, constants.WHITE)
-            self.screen.blit(text, (constants.SCREEN_WIDTH // 2 - text.get_width() // 2, constants.HEIGHT // 2))
-            text = self.graphics.font_bayshore.render("Exit Game", True, constants.WHITE)
-            self.screen.blit(text, (constants.SCREEN_WIDTH // 2 - text.get_width() // 2, constants.HEIGHT // 2 + \
-                                    (constants.DEFAULT_FONT_SIZE + constants.BAYSHORE_ADJ + 10)))
-        elif self.selected_input == 1:
-            text = self.graphics.font_bayshore.render(to_game_text, True, constants.WHITE)
-            self.screen.blit(text, (constants.SCREEN_WIDTH // 2 - text.get_width() // 2, constants.HEIGHT // 2  \
-                                    - (constants.DEFAULT_FONT_SIZE + constants.BAYSHORE_ADJ + 10)))
-            text = self.graphics.font_bayshore_selected.render("Return to Menu", True, constants.WHITE)
-            self.screen.blit(text, (constants.SCREEN_WIDTH // 2 - text.get_width() // 2, constants.HEIGHT // 2))
-            text = self.graphics.font_bayshore.render("Exit Game", True, constants.WHITE)
-            self.screen.blit(text, (constants.SCREEN_WIDTH // 2 - text.get_width() // 2, constants.HEIGHT // 2 +  \
-                                    (constants.DEFAULT_FONT_SIZE + constants.BAYSHORE_ADJ + 10)))
-        else:
-            text = self.graphics.font_bayshore.render(to_game_text, True, constants.WHITE)
-            self.screen.blit(text, (constants.SCREEN_WIDTH // 2 - text.get_width() // 2, constants.HEIGHT // 2  \
-                                    - (constants.DEFAULT_FONT_SIZE + constants.BAYSHORE_ADJ + 10)))
-            text = self.graphics.font_bayshore.render("Return to Menu", True, constants.WHITE)
-            self.screen.blit(text, (constants.SCREEN_WIDTH // 2 - text.get_width() // 2, constants.HEIGHT // 2))
-            text = self.graphics.font_bayshore_selected.render("Exit Game", True, constants.WHITE)
-            self.screen.blit(text, (constants.SCREEN_WIDTH // 2 - text.get_width() // 2, constants.HEIGHT // 2 + \
-                                    (constants.DEFAULT_FONT_SIZE + constants.BAYSHORE_ADJ + 10)))
-
-        pygame.display.flip()
-    
     def countDown(self):
         # Dont want numbers covering the ball so we offset the counter up if this is going to happen
         offset = 0
@@ -273,7 +170,7 @@ class ClassicGame(GameMode):
         k = 1
         for i in range(3,0, -1):
             self.drawFrame()
-            text = self.title_font.render(str(i), True, constants.WHITE)
+            text = self.menu.title_font.render(str(i), True, constants.WHITE)
             self.screen.blit(text, (text_x, text_y - offset))
             pygame.display.flip()
             while (pygame.time.get_ticks() - startTime < k * 1000):
@@ -283,4 +180,33 @@ class ClassicGame(GameMode):
                         self.paused = False
             k = k + 1
         self.fadeIn = False
-        
+    
+    # Hand off to menu class and offload the job
+    def pauseScreen(self):
+        self.menu.running = self.running
+        self.menu.fadeIn = self.useCV
+        self.menu.gameOver = self.gameOver
+        self.menu.paused = self.paused
+        self.menu.returnMenu = self.returnMenu
+        self.menu.endText = self.endText
+
+        self.menu.pauseScreen()
+
+        self.running = self.menu.running
+        self.fadeIn = self.menu.useCV
+        self.gameOver = self.menu.gameOver
+        self.returnMenu = self.menu.returnMenu
+        self.paused = self.menu.paused
+        self.endText = self.menu.endText
+
+    # Hand off to menu class and offload the job
+    def getInput(self):
+        self.menu.running = self.running
+        self.menu.useCV = self.useCV
+        self.menu.fadeIn = self.fadeIn
+
+        self.menu.getInput()
+
+        self.running = self.menu.running
+        self.useCV = self.menu.useCV
+        self.fadeIn = self.menu.fadeIn

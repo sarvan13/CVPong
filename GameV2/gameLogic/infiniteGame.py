@@ -9,7 +9,6 @@ class InfiniteGame(ClassicGame):
         # Override left paddle to extend across entire screen height
         self.left_paddle.pygame_rect = pygame.Rect(constants.LEFT_SCREEN_OFFSET, constants.TOP_SCREEN_OFFSET - 1\
                                                    , 50, constants.HEIGHT + 2)
-        self.score = 0
         self.endText = self.score
         self.paddle_last_hit = pygame.time.get_ticks()
     
@@ -41,12 +40,13 @@ class InfiniteGame(ClassicGame):
     def updateScore(self):
         # Override to calculate score based on number of returns 
         if self.ball.pygame_rect.colliderect(self.right_paddle.pygame_rect) and \
-            pygame.time.get_ticks() - self.paddle_last_hit > 100:
+            pygame.time.get_ticks() - self.paddle_last_hit > 200:
+            self.paddle_last_hit = pygame.time.get_ticks()
             self.score += 1
 
     def drawScore(self):
         # Override to show only a single score
-        score_display = self.font.render(f"{self.score}", True, constants.WHITE)
+        score_display = self.menu.font.render(f"{self.score}", True, constants.WHITE)
         self.screen.blit(score_display, (constants.LEFT_SCREEN_OFFSET + constants.WIDTH // 2 \
                                          - score_display.get_width() // 2, constants.TOP_SCREEN_OFFSET + 20))
     def checkGameOver(self):

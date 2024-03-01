@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod 
 
+# This abstract class defines what all game modes should look like as well as defining
+# the overarching workflow of the game
 class GameMode(ABC):
     def __init__(self, screen, cap, mp_hands, hands):
         self.screen = screen
@@ -13,7 +15,11 @@ class GameMode(ABC):
         self.returnMenu = False
         self.gameOver = False
         self.endText = ""
+        self.right_score = 0
+        self.left_score = 0
+        self.score = 0
     
+    # Outlines the workflow for all game modes
     def runGame(self):
         while self.useCV == -1:
             self.getInput()
