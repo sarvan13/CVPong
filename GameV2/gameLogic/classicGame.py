@@ -17,7 +17,7 @@ class ClassicGame(GameMode):
         self.left_paddle = Paddle(pygame.Rect(constants.LEFT_SCREEN_OFFSET + 50, constants.TOP_SCREEN_OFFSET + \
                                               constants.HEIGHT // 2 - 50, 20, 100))
         self.ball = Ball(pygame.Rect(constants.LEFT_SCREEN_OFFSET + constants.WIDTH // 2 - 15, constants.TOP_SCREEN_OFFSET \
-                                      + constants.HEIGHT // 2 - 15, 30, 30), 0)
+                                      + constants.HEIGHT // 2 - 15, 30, 30), constants.MAX_SPEED_INC)
         self.border_surface = pygame.Surface((constants.WIDTH + 2*constants.BORDER_THICKNESS,\
                                                constants.HEIGHT + 2*constants.BORDER_THICKNESS), pygame.SRCALPHA)
         self.border_surface.fill((0,0,0,0))
@@ -163,6 +163,7 @@ class ClassicGame(GameMode):
             - self.right_paddle.pygame_rect.height //2
         self.ball.past_left = 0
         self.ball.past_right = 0
+        self.particles = []
     
     def countDown(self):
         # Dont want numbers covering the ball so we offset the counter up if this is going to happen

@@ -1,4 +1,5 @@
 from GameV2.gameLogic.classicGame import ClassicGame
+from GameV2.gameLogic.gameObjects import Ball
 import pygame
 import GameV2.constants as constants
 import cv2
@@ -9,6 +10,8 @@ class InfiniteGame(ClassicGame):
         # Override left paddle to extend across entire screen height
         self.left_paddle.pygame_rect = pygame.Rect(constants.LEFT_SCREEN_OFFSET, constants.TOP_SCREEN_OFFSET - 1\
                                                    , 50, constants.HEIGHT + 2)
+        self.ball = Ball(pygame.Rect(constants.LEFT_SCREEN_OFFSET + constants.WIDTH // 2 - 15, constants.TOP_SCREEN_OFFSET \
+                                      + constants.HEIGHT // 2 - 15, 30, 30), constants.MAX_SPEED_INC * constants.INFINITE_SLOW_DOWN)
         self.endText = self.score
         self.paddle_last_hit = pygame.time.get_ticks()
     

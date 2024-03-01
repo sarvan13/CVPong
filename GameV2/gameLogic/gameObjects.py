@@ -109,15 +109,15 @@ class Paddle:
         return False
 
 class Ball:
-    def __init__(self, pygame_rect, spin):
+    def __init__(self, pygame_rect, speed_inc):
         self.pygame_rect = pygame_rect
         self.vx = constants.BALL_SPEED
         self.vy = 0.5*constants.BALL_SPEED
-        self.spin = spin
         self.past_left = 0
         self.past_right = 0
         self.time = time()
         self.pong_sound = sounds.loadPongSound()
+        self.max_speed_inc = speed_inc
 
     # Progresses the ball one frame
     def moveBall(self, left_paddle, right_paddle, particles):
@@ -185,7 +185,7 @@ class Ball:
             
             # Now we add in the speed from the paddle
             curr_energy = self.vy**2 + self.vx**2
-            max_energy = curr_energy + constants.MAX_SPEED_INC**2
+            max_energy = curr_energy + self.max_speed_inc**2
             new_y_speed = self.vy + paddle.speed
             new_x_speed = self.vx
             new_energy = new_y_speed**2 + new_x_speed**2
