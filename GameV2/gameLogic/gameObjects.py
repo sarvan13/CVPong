@@ -170,8 +170,10 @@ class Ball:
                 if self.pygame_rect.right > (paddle.pygame_rect.right + self.pygame_rect.width // 2) \
                     or self.pygame_rect.left < (paddle.pygame_rect.left - self.pygame_rect.width // 2):
                     self.vx = -self.vx
-                    self.vx = self.vx / abs(self.vx) + self.vx
-                    self.vy = self.vy / abs(self.vy) + self.vy
+                    self.vx = (self.vx / abs(self.vx))*constants.SPEED_MULT + self.vx
+                    # Need to check for vy = 0 for divide by 0, vx will never be 0 so no need to check
+                    if self.vy != 0:
+                        self.vy = (self.vy / abs(self.vy))*constants.SPEED_MULT + self.vy
             elif self.pygame_rect.top < paddle.pygame_rect.top:
                 # ball is either on corner or top of paddle
                 self.vy = -1 * abs(self.vy) # force ball up
@@ -180,12 +182,15 @@ class Ball:
                 if self.pygame_rect.right > (paddle.pygame_rect.right + self.pygame_rect.width // 2) \
                     or self.pygame_rect.left < (paddle.pygame_rect.left - self.pygame_rect.width // 2):
                     self.vx = -self.vx
-                    self.vx = self.vx / abs(self.vx) + self.vx
-                    self.vy = self.vy / abs(self.vy) + self.vy
+                    self.vx = (self.vx / abs(self.vx))*constants.SPEED_MULT + self.vx
+                    if self.vy != 0:
+                        self.vy = (self.vy / abs(self.vy))*constants.SPEED_MULT + self.vy
             else:
                 self.vx = -self.vx
                 self.vx = (self.vx / abs(self.vx))*constants.SPEED_MULT + self.vx
-                self.vy = (self.vy / abs(self.vy)*constants.SPEED_MULT) + self.vy
+                self.vx = (self.vx / abs(self.vx))*constants.SPEED_MULT + self.vx
+                if self.vy != 0:
+                    self.vy = (self.vy / abs(self.vy))*constants.SPEED_MULT + self.vy
             
             # Now we add in the speed from the paddle - this is the PHYSICS
             curr_energy = self.vy**2 + self.vx**2
@@ -203,6 +208,7 @@ class Ball:
             theta = np.arctan2(new_y_speed, new_x_speed)
             if abs(abs(theta) - (np.pi / 2)) < np.radians(constants.MIN_ANGLE):
                 # Too close to vertical push it past min angle
+                # Theta wont be 0 ever so no need to check for divide by 0
                 if abs(theta) < np.pi / 2:
                     theta = theta / abs(theta) * ((np.pi / 2) - constants.MIN_ANGLE)
                 else:
@@ -267,5 +273,3 @@ class PowerUp:
             return self.type
         else:
             return constants.PowerUpType.NONE
-
-        
