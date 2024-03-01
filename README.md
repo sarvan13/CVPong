@@ -6,9 +6,15 @@ This is my attempt at creating the classic game of Pong but with the added twist
   <img src="https://sarvangill.ca/docs/PONG-game.png" width="500" /> 
 </p>
 
-The background images of the game were both generated using AI and ripped off the internet, the fonts I also found online for free.
+The background images of the game were both generated using AI and took off the internet, the fonts I also found online for free. I actually decided to remove the background in the game so these are actually old images of the basic game. The final game has 5 game modes! 
 
 ## Running the game
+
+### Getting the code
+Before I get into running the game - let me explain what to clone from the repo. The main branch is this one you are looking at `beta`. Please clone this branch.
+
+This branch actually contains 2 copies of the game. The main game lives within `CVPong/GameV2`. This includes the first 4 game modes. It *does NOT* contain the last game mode "Double Trouble". The game with "Double Trouble" lives within `CVPong/Beta/GameV2`. I have labelled the game with the "Double Trouble" mode a beta version, not because the game mode doesnt work (it does) but because I made this game mode fulling knowing that it would expose all the flaws in my code and lead to some hacky development. I do see value in acknowledging areas of improvement and instead of just telling you where I could improve - I present this game mode and this super uninspiring code changes that I had to make to get it working. So if you are judging my code quality please look in `CVPong/GameV2` and not `CVPong/Beta/GameV2`. 
+
 ### Dependencies
 Before we run the game we need to make sure we have the correct tools installed. The game makes use of three major libraries that is pygame (game development), openCV (camera input), and media pipe (hand detection).
 
@@ -32,9 +38,45 @@ Now I suspect downgrading to `Python-3.9` is not necessary as my Windows machine
 
 ### Run the game
 
-Now that the dependencies are installed we just need to run the game - **no GOOD game to run yet lol**
+Now that the dependencies are installed we just need to run the game - and to do that is quite simple.
 
-``` python <insert-game-name> ```
+First make sure you are inside the correct directory of the game you want to try so either `cd /install/path/CVPong/GameV2` or `cd /install/path/CVPong/Beta/GameV2`. Once inside the directory simply run:
+
+``` python pong.y ```
+
+(this might be `python3` or `python3.9` depending on your environemnt)
+
+That should do it. Enjoy the game!
+
+## Game Instructions
+In all game modes you can select whether to use motion capture or to use the keyboard on a menu screen before the game. Use your right hand to control the paddle unless the instructions below say otherwise. There are basic physics that include the paddles velocity when the ball is hit which is explained further below.
+
+### Classic
+Your classic game of pong playing against a computer. You can use your right hand to control the paddle or the arrow keys - there is a menu screen to select. Game is first to 7 points.
+
+### Infinite
+This is game mode is what was described by the task in its most basic form. Control the paddle with your right hand and play pong against the wall. Game ends when you miss the ball. Game of trying to get a high score.
+
+### Two Player
+Remove the computer from the classic game mode and add another hand and you have the two player mode. Right hand controls right paddle, left hand controls left paddle. Game is first to 7 points.
+
+### Arcade
+This is the classic game modes but with power ups! The game will randomly spit out little balls that are power ups if your paddle touches it.
+- `Grey:Slow` - slows the ball for a brief period of time (or until the ball contacts a wall or paddle) before returning to its original speed
+- `Ice:Freeze` - freezes the computers paddle for a brief period of time
+- `Green:Grab` - allows the user to grab the ball and then release it at a new angle and the original speed
+#### Grab Power Up Control
+There is a sweeping line that indicates the balls trajectory on release when it is stuck on your paddle. To release the ball on the keyboard all you have to do is click the space bar.
+
+If you are using hand detection, then in order to grab the ball you must show the screen a closed fist - your paddle will go green when it detects that you have the power up and that your fist is closed. To release the ball simply open your hand!
+
+### Double Trouble
+**Only in the `Beta/GameV2` version**
+Here all 4 walls have paddles. Your left hand controls the top paddle and your right hand controls the right paddle. Keep your hands upright as rotating them will confuse the game as to which hand is which if they aren't straight. On the keyboard you control both paddles at once with the up and down arrows, that is the top and right paddle lose their individuality and now only work as one.
+
+
+## Game Notes
+Unfortunately I was not able to keep the Mac I borrowed for the entire week so I wasn't able to test some things on other platforms. One thing that I think could be impacted by this is the closed and open hand detection. I have a feeling that the resolution of the camera will impact whether my threshold I have set here. The threshold is quite robust on my 2018 Surface Book but you might need to move your hand slightly farther away from the camera for this if your resolution is higher than mine.
 
 ## Physics
 ### Background (Feel free to skip)
