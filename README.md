@@ -2,8 +2,8 @@
 This is my attempt at creating the classic game of Pong but with the added twist of using motion capture so that the player controls the paddle with their hand rather than keys. 
 
 <p float="center">
-  <img src="https://sarvangill.ca/docs/PONG-home.png" width="500" />
-  <img src="https://sarvangill.ca/docs/PONG-game.png" width="500" /> 
+  <img src="https://sarvan13.github.io/docs/PONG-home.png" width="500" />
+  <img src="https://sarvan13.github.io/docs/PONG-game.png" width="500" /> 
 </p>
 
 The background images of the game were both generated using AI and took off the internet, the fonts I also found online for free. I actually decided to remove the background in the game so these are actually old images of the basic game. The final game has 4.5 game modes! 
